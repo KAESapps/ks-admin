@@ -3,7 +3,7 @@ import mime from 'rest/interceptor/mime'
 import errorCode from 'rest/interceptor/errorCode'
 import pathPrefix from 'rest/interceptor/pathPrefix'
 
-import Atom from './reactiveCollection/Atom'
+import Atom from '../reactiveCollection/Atom'
 
 const jsonRequest = rest.wrap(mime, {
     mime: 'application/json',
