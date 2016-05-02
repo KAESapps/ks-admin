@@ -27,6 +27,7 @@ export default function (arg) {
   }
 
   var model = {
+    name: arg.serviceName,
     get: function (itemId) {
       var key = 'item::'+itemId
       if (! (key in itemsCache)) {
@@ -77,7 +78,7 @@ export default function (arg) {
       var requestArgs = actions[actionName].apply(null, arguments)
       var resp = client[requestArgs[0]](requestArgs[1], requestArgs[2])
       return resp.catch(err => {
-        console.error(actionName, url, err)
+        console.error(arg.serviceName, actionName, err)
         throw err
       }).then(function () {
         console.log('done', requestArgs[0], requestArgs[1], requestArgs[2])
