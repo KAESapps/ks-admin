@@ -6,7 +6,8 @@ import Image from 'react-bootstrap/lib/Image'
 
 export default function (arg) {
   var fieldId = arg
-  return function (collections, collectionId, itemId) {
+  return function (collections, collectionId, itemId, fieldArg) {
+    if (!fieldId) fieldId = fieldArg.path
     var model = collections[collectionId].model
     return observer(function () {
       var fieldValue = model.get(itemId).value[fieldId]
