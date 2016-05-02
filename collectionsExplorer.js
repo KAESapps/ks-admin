@@ -151,6 +151,7 @@ var itemViewDefault = function (collections, collectionId, itemId, back) {
 var listItemViewDefault = function (collections, collectionId, $selectedItem) {
   var model = collections[collectionId].model
   var labelArg = collections[collectionId].views.list
+  if (typeof labelArg === 'object' && labelArg.view) labelArg = labelArg.view
   var header = '_id', body
   if (typeof labelArg === 'string') {
     header = labelArg
@@ -186,9 +187,11 @@ var listItemViewDefault = function (collections, collectionId, $selectedItem) {
 
 var innerlistViewDefault = function (collections, collectionId, $itemId) {
   var model = collections[collectionId].model
+  var args = collections[collectionId].views.list
+  var $sort = (typeof args === 'object') ? args.orderBy : null
   var listItemView = listItemViewDefault(collections, collectionId, $itemId)
   return observer(function() {
-    var itemIds = model.query()
+    var itemIds = $sort ? model.query({$sort}) : model.query()
     if (!(itemIds.loaded)) {
       return el('div', {}, 'chargement...')
     }
