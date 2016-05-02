@@ -27,7 +27,8 @@
     "lodash": "4.11.1",
     "mobservable": "1.2.2",
     "mobservable-react": "2.1.0",
-    "react-bootstrap": "0.29.2"
+    "react-bootstrap": "0.28.1",
+    "react-semantify": "0.4.3"
   },
   "browserify": {
     "transform": [
