@@ -1,3 +1,4 @@
+import get from 'lodash/get'
 import React from 'react'
 const el = React.createElement
 import { observer } from 'mobservable-react'
@@ -33,9 +34,10 @@ export default function (collections, collectionId, itemId, fieldArg) {
 
   return observer(function () {
     var editing = $editing()
-    var value = editing ?
+    var value = normalizeValue(editing ?
       $inputValue() :
-      normalizeValue(model.get(itemId).value[fieldId])
+      get(model.get(itemId).value, fieldId)
+    )
     return el('div', null,
       el(Input, {
         key: 'input',
