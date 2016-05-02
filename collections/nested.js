@@ -1,17 +1,20 @@
 import create from 'lodash/create'
+import get from 'lodash/get'
+
+import { observable, asReference } from 'mobservable'
 
 export default function (model, itemId, fieldPath) {
   return create(model, {
-    query: function () {
+    query: function (params) {
       var item = model.get(itemId)
+      var fieldValue = item.loaded ? get(item.value, fieldPath) : []
+      var $offset = params && params.$offset || 0
+      var $limit = params && params.$limit || 10
+      // TODO:  $sort
       return {
         loading: item.loading, // puisque c'est un itemField widget, normalement l'item a déjà été chargé
         loaded: item.loaded,
-        value: item.value ?
-          Array.isArray(item.value[fieldPath]) ?
-            item.value[fieldPath].map(subItem => subItem._id):
-            []:
-          null, //TODO: il faudrait peut-être une façon plus explicite de dire que c'est l'item lui-même qui n'existe pas
+        value: fieldValue.map(subItem => subItem._id).slice($offset, $offset+$limit),
       }
     },
     get: function (subItemId) {
