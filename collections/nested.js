@@ -1,13 +1,12 @@
 import create from 'lodash/create'
 import get from 'lodash/get'
 
-import { observable, asReference } from 'mobservable'
 
 export default function (model, itemId, fieldPath) {
   return create(model, {
     query: function (params) {
       var item = model.get(itemId)
-      var fieldValue = item.loaded ? get(item.value, fieldPath) : []
+      var fieldValue = get(item.value, fieldPath) || []
       var $offset = params && params.$offset || 0
       var $limit = params && params.$limit || 10
       // TODO:  $sort
