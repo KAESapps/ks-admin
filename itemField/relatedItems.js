@@ -17,13 +17,13 @@ var subCollection = function (model, foreignKeyField, itemId) {
 }
 
 export default function (arg) {
-  var relatedCollectionId = arg.collection
+  var relatedCollectionId = typeof arg.collection === 'string' ? arg.collection : arg.collection.name
   var foreignKeyField = arg.field
   return function (collections, collectionId, itemId) {
     itemId = arg.getItemId ? arg.getItemId(itemId) : itemId // pas terrible, il faudrait une meilleure abstraction pour le cas où il ne faut pas utiliser directement l'itemId
     // comme pour récupérer la liste des trnsactions d'un hotel où il faut préfixer l'id avec 'hotels/'
     var virtualCollectionId = relatedCollectionId+'/'+foreignKeyField+'='+itemId // pratique pour du débug
-    var relatedModel = collections[relatedCollectionId].model
+    var relatedModel = typeof arg.collection === 'string' ? collections[relatedCollectionId].model : arg.collection
     var virtualCollection = Object.assign({
       model: subCollection(relatedModel, foreignKeyField, itemId),
     }, arg.view)
