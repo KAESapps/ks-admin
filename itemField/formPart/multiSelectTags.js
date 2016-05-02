@@ -67,7 +67,7 @@ export default function (arg) {
 
 function isOptionSelected(itemValue, option, format) {
   return format === 'object' ?
-    option in itemValue :
+    itemValue[option] :
     itemValue.indexOf(option) >= 0
 }
 
