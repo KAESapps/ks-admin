@@ -24,7 +24,7 @@ export var fieldEditor = function(collections, collectionId, itemId, $patch, opt
       type: type,
       // bsStyle: partEditing ? "success" : null,
       value: value,
-      onChange: ev => onChange(ev.target.value),
+      onChange: ev => onChange(type === 'number' ? ev.target.valueAsNumber : ev.target.value),
     })
   })
 }
