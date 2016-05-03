@@ -27,11 +27,12 @@ export default function ({fields, pageSize, sort}) {
     var previous = () => currentPage(currentPage()-1)
     var next = () => currentPage(currentPage()+1)
     return observer(function () {
-      var itemIds = model.query({
-        $offset: currentPage()*pageSize,
+      var queryParams = {
+        $skip: currentPage()*pageSize,
         $limit: pageSize,
-        $sort: JSON.stringify(sort),
-      })
+      }
+      if (sort) {queryParams.$sort = sort}
+      var itemIds = model.query(queryParams)
       if (!itemIds.loaded) return el('div', null, 'chargement...')
 
       return el('div', null,
