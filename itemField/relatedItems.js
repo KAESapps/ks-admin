@@ -1,20 +1,10 @@
-import assign from 'lodash/assign'
 import React from 'react'
 const el = React.createElement
 import {create} from 'lodash'
 
 import {collectionEditor} from '../collectionsExplorer'
 
-var subCollection = function (model, foreignKeyField, itemId) {
-  return create(model, {
-    query: function (params) {
-      return model.query(assign({}, params, {[foreignKeyField]: itemId}))
-    },
-    add: function (data) {
-      return model.add(Object.assign({}, data, {[foreignKeyField]: itemId}))
-    },
-  })
-}
+import subCollection from '../collections/sub'
 
 export default function (arg) {
   var relatedCollectionId = typeof arg.collection === 'string' ? arg.collection : arg.collection.name
