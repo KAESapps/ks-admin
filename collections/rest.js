@@ -1,3 +1,4 @@
+import mapValues from 'lodash/mapValues'
 import rest from 'rest/browser'
 import mime from 'rest/interceptor/mime'
 import errorCode from 'rest/interceptor/errorCode'
@@ -11,6 +12,11 @@ const jsonRequest = rest.wrap(mime, {
     code: 400,
 })
 
+const stringifyObject = function(v) {
+  if (typeof v === 'object') return JSON.stringify(v)
+  return v
+}
+
 export default function (arg) {
   if (typeof arg === 'string') arg = {request: arg}
   var url = arg.request
@@ -22,7 +28,7 @@ export default function (arg) {
     console.log('loading query', url, params)
     var obs = queriesCache[key]
     if (!init) obs.patchValue({loading: true})
-    return request({params: params}).entity().then(function (items) {
+    return request({params: mapValues(params, stringifyObject)}).entity().then(function (items) {
       obs.setValue({
         loading: false,
         loaded: new Date(),
