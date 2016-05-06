@@ -7,13 +7,13 @@ export default function (model, itemId, fieldPath) {
     query: function (params) {
       var item = model.get(itemId)
       var fieldValue = get(item.value, fieldPath) || []
-      var $offset = params && params.$offset || 0
+      var $skip = params && params.$skip || 0
       var $limit = params && params.$limit || 10
       // TODO:  $sort
       return {
         loading: item.loading, // puisque c'est un itemField widget, normalement l'item a déjà été chargé
         loaded: item.loaded,
-        value: fieldValue.map(subItem => subItem._id).slice($offset, $offset+$limit),
+        value: fieldValue.map(subItem => subItem._id).slice($skip, $skip+$limit),
       }
     },
     get: function (subItemId) {
