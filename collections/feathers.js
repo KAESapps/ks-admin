@@ -1,4 +1,5 @@
 import Atom from '../reactiveCollection/Atom'
+import {transaction} from 'mobservable'
 
 export default function (arg) {
   var itemsCache = {}
@@ -9,13 +10,35 @@ export default function (arg) {
 
   watcher.on('change', function({key, type, value}) {
     console.log('received change for', key, value)
-    var obs = (type === 'query' ? queriesCache : itemsCache)[key]
-    obs.setValue({
-      loading: false,
-      loaded: new Date().toISOString(),
-      value: type === 'item' ? value : value.data.map(o => o.id),
-    })
-
+    if (type === 'query') {
+      var obs = queriesCache[key]
+      obs.setValue({
+        loading: false,
+        loaded: new Date().toISOString(),
+        value: type === 'item' ? value : value.data.map(o => o.id),
+      })
+      // on profite d'avoir déjà les valeurs des items pour mettre à jour le cache
+      // mais on ne le fait pas dans la même transaction que la query pour permettre aux fonctions de rendu de s'abonner aux items
+      transaction(() => {
+        value.data.forEach(item => {
+          var obs = itemsCache[item.id]
+          if (obs) {
+            obs.setValue({
+              loading: false,
+              loaded: new Date(),
+              value: item,
+            })
+          }
+        })
+      })
+    } else { // type === 'item'
+      var obs = itemsCache[key]
+      obs.setValue({
+        loading: false,
+        loaded: new Date().toISOString(),
+        value: value,
+      })
+    }
   })
 
   var watch = function (type, key, params) {

@@ -5,6 +5,7 @@ import errorCode from 'rest/interceptor/errorCode'
 import pathPrefix from 'rest/interceptor/pathPrefix'
 
 import Atom from '../reactiveCollection/Atom'
+import {transaction} from 'mobservable'
 
 const jsonRequest = rest.wrap(mime, {
     mime: 'application/json',
@@ -34,7 +35,20 @@ export default function (arg) {
         loaded: new Date(),
         value: items.map(item => item._id),
       })
-      // TODO: remplir le cache d'items ?
+      // met à jour le cache d'items
+      // on le fait volontairement après le rendu de la mise à jour de la liste, ce qui permet aux fonctions de rendu de s'abonner aux items avant de les peupler
+      transaction(()=> {
+        items.forEach(item => {
+          var obs = itemsCache[item._id]
+          if (obs) {
+            obs.setValue({
+              loading: false,
+              loaded: new Date(),
+              value: item,
+            })
+          }
+        })
+      })
     }).catch(err => console.error("query request", url, params, err))
   }
   var fetchItem = function (itemId, init) {
