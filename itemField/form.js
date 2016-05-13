@@ -8,6 +8,8 @@ import Command from '../reactiveCollection/Command'
 import Button from 'react-bootstrap/lib/Button'
 import Input from 'react-bootstrap/lib/Input'
 
+const preventDefault = ev => ev.preventDefault()
+
 export var fieldEditor = function(collections, collectionId, itemId, $patch, options) {
   var model = collections[collectionId].model
   var path = options.path
@@ -60,7 +62,7 @@ export default function (parts) {
     return observer(function () {
       var editing = $patch.keys().length > 0
       return el('div', null,
-        el('form', null, cmps.map((cmp, i) => el(cmp, {key: i}))),
+        el('form', {onSubmit: preventDefault}, cmps.map((cmp, i) => el(cmp, {key: i}))),
         editing && save.status() === 'idle' ? el(Button, {
           onClick: save.trigger,
           // disabled: !editing || save.status() !== 'idle',
