@@ -12,17 +12,32 @@ const itemPicker = function({collection, labelPath, onChange}){
 
   return observer(function(value){
     var results = collection.query({$sort: {[labelPath]: 1}, $limit: $skip()+10})
-    return el('div', {style: {position: 'absolute'}},
-      el('input', {value: $srch(), onChange: ev => $srch(ev.target.value)}),
-      el('span', null, results.loading ? 'searching...' : ''),
-      el('div', null, results.value.slice($skip(), 10).map(optionId => {
+    var items = [
+        results.loading && el('span', { className: 'item' }, 'searching...'),
+        //el('input', {className: 'item', value: $srch(), onChange: ev => $srch(ev.target.value)}),
+      ].concat(results.value.slice($skip(), 10).map(optionId => {
         var optionLabel = collection.get(optionId).loaded ? get(collection.get(optionId).value, labelPath) : '...'
-        return el('div', {key: optionId, onClick: ()=> onChange(optionId)}, optionLabel)
-      })),
-      el('div', null,
-        el('button', {onClick: prev}, '<'),
-        el('button', {onClick: nxt}, '>')
-      )
+        return el('a', {key: optionId, className: 'item', onClick: ()=> onChange(optionId)}, optionLabel)
+      }))
+      .concat([
+        el('div', {className: 'item' },
+          el('div', { className: 'ui pagination menu right floated'},
+            el('a', {className: 'item', onClick: prev},
+              el('i', {className: 'icon chevron left' })
+            ),
+            el('a', {className: 'item', onClick: nxt},
+              el('i', {className: 'icon chevron right' })
+            )
+          )
+        )
+      ])
+    return el('div', {
+      className: 'ui vertical menu',
+      style: {
+        position: 'absolute',
+        background: 'white',
+      }},
+      items
     )
   })
 }
@@ -71,8 +86,12 @@ export default function (arg) {
 
       return el('div', {style: {position: 'relative'}},
         el('button', {
+          className: 'ui right labeled icon button',
           onClick: toogle,
-        }, valueLabel),
+        },
+          el('i', { className: 'dropdown icon'}),
+          valueLabel
+        ),
         $opened() ? el(itemPickerCmp, {value}) : null
       )
     })
