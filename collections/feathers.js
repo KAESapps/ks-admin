@@ -49,11 +49,11 @@ export default function (arg) {
     return watcher.remove(key)
   }
 
-  arg.fth.io.on('disconnect', function () {
+  arg.fth.on('disconnect', function () {
     console.log('disconnected', arg.serviceName)
   })
 
-  arg.fth.io.on('connect', function () {
+  arg.fth.on('authenticated', function () {
     console.log("reconnected, resubscribing to everything", arg.serviceName)
     Object.keys(queriesCache).forEach(queryKey => {
       var params = JSON.parse(queryKey.split('::')[1])
