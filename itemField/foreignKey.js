@@ -3,20 +3,22 @@ const el = React.createElement
 import { observer } from 'mobservable-react'
 import {get} from 'lodash'
 
+import asText from './text'
+
 export default function (arg) {
   var relatedCollection = arg.collection
-  var labelField = arg.labelField
+  var labelField = arg.labelField || arg.path // TODO: deprecate use of 'labelField'
   return function (collections, collectionId, itemId, fieldArg) {
     var fieldId = fieldArg.path
     var model = collections[collectionId].model
-    var relatedModel = typeof relatedCollection === 'string' ? collections[relatedCollection].model : relatedCollection
+
     return observer(function () {
+      var item = model.get(itemId)
+      if (!item.loaded) return el('span', null, '...')
       var fieldValue = get(model.get(itemId).value, fieldId)
-      if (!fieldValue) return el('div', {}, '-') // null
-      var relatedItem = relatedModel.get(fieldValue)
-      if (!relatedItem.loaded) return el('div', {}, 'loading...')
-      if (!relatedItem.value) return el('div', {}, 'élément inexistant')
-      return el('div', {}, get(relatedItem.value, labelField))
+      var view = (typeof arg.type === 'function' ? arg.type : asText)(collections, relatedCollection, fieldValue, {path: labelField})
+
+      return el(view)
     })
   }
 }

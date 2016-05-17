@@ -6,8 +6,8 @@ import { observer } from 'mobservable-react'
 
 export const asText = function(transformValue) {
   if (!transformValue) transformValue = toString
-  return function (collections, collectionId, itemId, fieldArg) {
-    var model = collections[collectionId].model
+  return function (collections, collection, itemId, fieldArg) {
+    var model = typeof collection === 'string' ? collections[collection].model : collection
 
     return observer(function () {
       var item = model.get(itemId)
