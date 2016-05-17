@@ -91,7 +91,7 @@ export default function (arg) {
       params = params || {}
       var key = JSON.stringify(params)
       if (! queriesCache[key]) {
-        var item = new Atom({loading: true, loaded: false, value: {}})
+        var item = new Atom({loading: true, loaded: false, value: []})
         queriesCache[key] = item
         item.onBecomeUnobserved(function () {
           console.log('query disposed', url, params)
