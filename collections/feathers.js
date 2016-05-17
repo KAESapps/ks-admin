@@ -49,6 +49,23 @@ export default function (arg) {
     return watcher.remove(key)
   }
 
+  arg.fth.io.on('disconnect', function () {
+    console.log('disconnected', arg.serviceName)
+  })
+
+  arg.fth.io.on('connect', function () {
+    console.log("reconnected, resubscribing to everything", arg.serviceName)
+    Object.keys(queriesCache).forEach(queryKey => {
+      var params = JSON.parse(queryKey.split('::')[1])
+      watch('query', queryKey, params)
+    })
+    Object.keys(itemsCache).forEach(itemKey => {
+      var itemId =itemKey.split('::')[1]
+      watch('item', itemKey, itemId)
+    })
+  })
+
+
   var model = {
     name: arg.serviceName,
     get: function (itemId) {
