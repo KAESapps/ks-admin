@@ -10,34 +10,32 @@ const itemPicker = function({collection, labelPath, onChange}){
   var prev = () => $skip($skip()-10)
   var nxt = () => $skip($skip()+10)
 
-  return observer(function(value){
+  return observer(function({value}){
     var results = collection.query({$sort: {[labelPath]: 1}, $limit: $skip()+10})
-    var items = [
-        results.loading && el('span', { className: 'item' }, 'searching...'),
-        //el('input', {className: 'item', value: $srch(), onChange: ev => $srch(ev.target.value)}),
-      ].concat(results.value.slice($skip(), 10).map(optionId => {
+
+    return el('div', {
+        className: 'ui vertical menu',
+        style: {
+          position: 'absolute',
+          background: 'white',
+        },
+      },
+      results.loading ? el('span', { className: 'item' }, 'searching...') : null,
+      //el('input', {className: 'item', value: $srch(), onChange: ev => $srch(ev.target.value)}),
+      results.value.slice($skip(), 10).map(optionId => {
         var optionLabel = collection.get(optionId).loaded ? get(collection.get(optionId).value, labelPath) : '...'
-        return el('a', {key: optionId, className: 'item', onClick: ()=> onChange(optionId)}, optionLabel)
-      }))
-      .concat([
-        el('div', {className: 'item' },
-          el('div', { className: 'ui pagination menu right floated'},
-            el('a', {className: 'item', onClick: prev},
-              el('i', {className: 'icon chevron left' })
-            ),
-            el('a', {className: 'item', onClick: nxt},
-              el('i', {className: 'icon chevron right' })
-            )
+        return el('a', { key: optionId, className: 'item', onClick: () => onChange(optionId) }, optionLabel)
+      }),
+      el('div', { className: 'item' },
+        el('div', { className: 'ui pagination menu right floated' },
+          el('a', { className: 'item', onClick: prev },
+            el('i', { className: 'icon chevron left' })
+          ),
+          el('a', { className: 'item', onClick: nxt },
+            el('i', { className: 'icon chevron right' })
           )
         )
-      ])
-    return el('div', {
-      className: 'ui vertical menu',
-      style: {
-        position: 'absolute',
-        background: 'white',
-      }},
-      items
+      )
     )
   })
 }
