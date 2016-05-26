@@ -271,7 +271,11 @@ var collectionsList = function (collections, select) {
 var collectionsSwitcher = function (collections, selected) {
   return observer(function () {
     var id = selected()
-    return id ? el(collectionEditor(collections, id)) : el('div', {}, 'dashboard')
+    if (!id) return el('div', {}, 'dashboard')
+    if (typeof collections[id].views === 'function') {
+      return el(collections[id].views(collections, id))
+    }
+    return el(collectionEditor(collections, id))
   })
 }
 
