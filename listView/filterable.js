@@ -7,20 +7,13 @@ import { observer } from 'mobservable-react'
 import Input from 'react-bootstrap/lib/Input'
 import Accordion from 'react-semantify/lib/modules/accordion'
 import Icon from 'react-semantify/lib/elements/icon'
+import filteredCollection from '../collections/filtered'
 
 const booleanOptions = [
   ['', "tout"],
   ['$true', "oui"],
   ['$false', "non"],
 ]
-
-var filteredCollection = function (model, filter) {
-  return create(model, {
-    query: function (params) {
-      return model.query(assign({}, filter, params))
-    },
-  })
-}
 
 export default function ({view, filters}) {
   return function (collections, collectionId, $itemId) {
