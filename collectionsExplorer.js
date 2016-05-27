@@ -206,7 +206,9 @@ var listViewDefault = function (collections, collectionId, $itemId) {
   var model = collections[collectionId].model
   var args = collections[collectionId].views.list
   var preventAdd = (typeof args === 'object') ? args.preventAdd : false
-  var add = () => model.add({}).then(item => $itemId(item._id))
+  var add = () => model.add({}).then(itemId => {
+    $itemId(itemId)
+  })
   var innerView = (typeof args.view === 'function' ? args.view : innerlistViewDefault)(collections, collectionId, $itemId)
 
   return observer(function () {

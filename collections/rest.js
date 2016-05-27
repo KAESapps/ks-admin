@@ -1,4 +1,6 @@
 import mapValues from 'lodash/mapValues'
+import identity from 'lodash/identity'
+import assign from 'lodash/assign'
 import rest from 'rest/browser'
 import mime from 'rest/interceptor/mime'
 import errorCode from 'rest/interceptor/errorCode'
@@ -107,46 +109,75 @@ export default function (arg) {
 
 
   var actions = {
-    add: function (data) {
-      return {method: 'POST', entity: data}
+    add: {
+      requestArgs: function (data) {
+        return {method: 'POST', entity: data}
+      },
+      transformResponse: resp => resp._id,
     },
-    remove: function (itemId) {
-      return {method: 'DELETE', path: itemId}
+    remove: {
+      requestArgs: function (itemId) {
+        return {method: 'DELETE', path: itemId}
+      },
+      transformResponse: identity,
     },
-    patch: function (itemId, patch) {
-      return {method: 'PATCH', path: itemId, entity: patch}
+    patch: {
+      requestArgs: function (itemId, patch) {
+        return {method: 'PATCH', path: itemId, entity: patch}
+      },
+      transformResponse: identity,
     },
-    addSubItem: function (itemId, fieldId, data) {
-      return {method: 'POST', path: itemId+'/'+fieldId, entity: data}
+    addSubItem: {
+      requestArgs: function (itemId, fieldId, data) {
+        return {method: 'POST', path: itemId+'/'+fieldId, entity: data}
+      },
+      transformResponse: resp => resp._id,
     },
-    patchSubItem: function (itemId, fieldId, subItemId, patch) {
-      return {method: 'PATCH', path: itemId+'/'+fieldId+'/'+subItemId, entity: patch}
+    patchSubItem: {
+      requestArgs: function (itemId, fieldId, subItemId, patch) {
+        return {method: 'PATCH', path: itemId+'/'+fieldId+'/'+subItemId, entity: patch}
+      },
+      transformResponse: identity,
     },
-    removeSubItem: function (itemId, fieldId, subItemId) {
-      return {method: 'DELETE', path: itemId+'/'+fieldId+'/'+subItemId}
+    removeSubItem: {
+      requestArgs: function (itemId, fieldId, subItemId) {
+        return {method: 'DELETE', path: itemId+'/'+fieldId+'/'+subItemId}
+      },
+      transformResponse: identity,
     },
-    addSubSubItem: function (itemId, fieldId, subItemId, subFieldId, data) {
-      return {method: 'POST', path: [itemId, fieldId, subItemId, subFieldId].join('/'), entity: data}
+    addSubSubItem: {
+      requestArgs: function (itemId, fieldId, subItemId, subFieldId, data) {
+        return {method: 'POST', path: [itemId, fieldId, subItemId, subFieldId].join('/'), entity: data}
+      },
+      transformResponse: resp => resp._id,
     },
-    patchSubSubItem: function (itemId, fieldId, subItemId, subFieldId, subSubItemId, patch) {
-      return {method: 'PATCH', path: [itemId, fieldId, subItemId, subFieldId, subSubItemId].join('/'), entity: patch}
+    patchSubSubItem: {
+      requestArgs: function (itemId, fieldId, subItemId, subFieldId, subSubItemId, patch) {
+        return {method: 'PATCH', path: [itemId, fieldId, subItemId, subFieldId, subSubItemId].join('/'), entity: patch}
+      },
+      transformResponse: identity,
     },
-    removeSubSubItem: function (itemId, fieldId, subItemId, subFieldId, subSubItemId) {
-      return {method: 'DELETE', path: [itemId, fieldId, subItemId, subFieldId, subSubItemId].join('/')}
+    removeSubSubItem: {
+      requestArgs: function (itemId, fieldId, subItemId, subFieldId, subSubItemId) {
+        return {method: 'DELETE', path: [itemId, fieldId, subItemId, subFieldId, subSubItemId].join('/')}
+      },
+      transformResponse: identity,
     },
   }
-  arg.actions && Object.assign(actions, arg.actions)
+  arg.actions && assign(actions, arg.actions)
 
   Object.keys(actions).forEach(function(actionName) {
     model[actionName] = function () {
-      var requestArgs = actions[actionName].apply(null, arguments)
+      const actionParams = actions[actionName]
+
+      var requestArgs = actionParams.requestArgs.apply(null, arguments)
       var resp = request(requestArgs).entity()
       // on retourne la réponse à la commande, mais après que le cache ait été rafraichit
       return resp.then(refreshCache).catch(err => {
         console.error(actionName, url, err)
         throw err
       }).then(function () {
-        return resp
+        return resp.then(actionParams.transformResponse)
       })
     }
   })

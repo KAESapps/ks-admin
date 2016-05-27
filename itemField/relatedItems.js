@@ -1,6 +1,6 @@
 import React from 'react'
 const el = React.createElement
-import {create} from 'lodash'
+import create from 'lodash/create'
 
 import {collectionEditor} from '../collectionsExplorer'
 

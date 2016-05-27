@@ -1,5 +1,6 @@
 import Atom from '../reactiveCollection/Atom'
 import {transaction} from 'mobservable'
+import identity from 'lodash/identity'
 
 export default function (arg) {
   var itemsCache = {}
@@ -101,28 +102,39 @@ export default function (arg) {
 
 
   var actions = {
-    add: function (data) {
-      return ['create', data]
+    add: {
+      requestArgs: function (data) {
+        return ['create', data]
+      },
+      transformResponse: resp => resp.id,
     },
-    remove: function (itemId) {
-      return ['remove', itemId]
+    remove: {
+      requestArgs: function (itemId) {
+        return ['remove', itemId]
+      },
+      transformResponse: identity
     },
-    patch: function (itemId, patch) {
-      return ['patch', itemId, patch]
+    patch: {
+      requestArgs: function (itemId, patch) {
+        return ['patch', itemId, patch]
+      },
+      transformResponse: identity
     },
   }
   if (arg.actions) Object.assign(actions, arg.actions)
 
   Object.keys(actions).forEach(function(actionName) {
     model[actionName] = function () {
-      var requestArgs = actions[actionName].apply(null, arguments)
+      const actionParams = actions[actionName]
+
+      var requestArgs = actionParams.requestArgs.apply(null, arguments)
       var resp = client[requestArgs[0]](requestArgs[1], requestArgs[2])
       return resp.catch(err => {
         console.error(arg.serviceName, actionName, err)
         throw err
       }).then(function () {
         console.log('done', requestArgs[0], requestArgs[1], requestArgs[2])
-        return resp
+        return resp.then(actionParams.transformResponse)
       })
     }
   })
