@@ -18,8 +18,11 @@ export default function (arg) {
       model: subCollection(relatedModel, foreignKeyField, itemId),
     }, arg.view)
     var augmentedCollections = create(collections, {[virtualCollectionId]: virtualCollection})
+
+    const view = (typeof arg.view === 'function') ? arg.view : collectionEditor
+
     return function () {
-      return el(collectionEditor(augmentedCollections, virtualCollectionId))
+      return el(view(augmentedCollections, virtualCollectionId))
     }
   }
 }

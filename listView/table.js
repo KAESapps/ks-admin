@@ -19,7 +19,7 @@ var fieldView = function (collections, collectionId, itemId, fieldArg) {
 }
 
 
-export default function ({fields, pageSize, sort}) {
+export default function ({fields, pageSize, sort, selectable = true }) {
   pageSize = pageSize || 10
   return function (collections, collectionId, $itemId) {
     var model = collections[collectionId].model
@@ -36,10 +36,10 @@ export default function ({fields, pageSize, sort}) {
       if (!itemIds.loaded) return el('div', null, 'chargement...')
 
       return el('div', null,
-        el(Table, { className: "selectable definition" },
+        el(Table, { className: (selectable ? 'definition selectable' : '') },
           el('thead', null,
             el('tr', null,
-              el('th'),
+              selectable && el('th'),
               fields.map((f, key) => {
                 var fieldArg = convertFieldArg(f)
                 return el('th', {key}, fieldArg.label)
@@ -50,10 +50,10 @@ export default function ({fields, pageSize, sort}) {
             itemIds.value.map(id => {
               return el('tr', {
                 key: id,
-                onClick: () => $itemId(id),
-                style: { cursor: 'pointer' }
+                onClick: () => selectable && $itemId(id),
+                style: { cursor: selectable ? 'pointer' : null }
               },
-                el('td', null,
+                selectable && el('td', null,
                   el(Icon, {className: 'chevron circle right', style: { color: 'gray' } })
                 ),
                 fields.map((f, key) => {
