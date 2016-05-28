@@ -21,6 +21,10 @@ export default function (arg) {
 
     const view = (typeof arg.view === 'function') ? arg.view : collectionEditor
 
+    if (arg.extendModels) {
+      augmentedCollections = arg.extendModels(augmentedCollections, itemId)
+    }
+
     return function () {
       return el(view(augmentedCollections, virtualCollectionId))
     }
