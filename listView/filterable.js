@@ -65,6 +65,14 @@ function appendFilter(filter, filterValues, f, i) {
   if (f.type === 'boolean') return filter[f.path] = (filterValues[i]() === '$true' ? true : {$ne: true})
   if (f.type.type  === 'select') return filter[f.path] = filterValues[i]()
   if (f.type === 'date') return filter[f.path] = {[f.operator || '$eq']: filterValues[i]()}
+  if (f.type === 'json') {
+    try {
+      var val = JSON.parse(filterValues[i]())
+      return filter[f.path] = {[f.operator]: val}
+    } catch (err) {
+      return filter
+    }
+  }
 }
 
 /*TODO:
