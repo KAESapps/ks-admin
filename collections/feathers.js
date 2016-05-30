@@ -13,6 +13,7 @@ export default function (arg) {
     console.log('received change for', key, value)
     if (type === 'query') {
       var obs = queriesCache[key]
+      if (!obs) return console.warn('received change for a key not present in cache', arg.serviceName, key)
       obs.setValue({
         loading: false,
         loaded: new Date().toISOString(),
@@ -22,9 +23,9 @@ export default function (arg) {
       // mais on ne le fait pas dans la même transaction que la query pour permettre aux fonctions de rendu de s'abonner aux items
       transaction(() => {
         value.data.forEach(item => {
-          var obs = itemsCache[item.id]
-          if (obs) {
-            obs.setValue({
+          var itemObs = itemsCache[item.id]
+          if (itemObs) {
+            itemObs.setValue({
               loading: false,
               loaded: new Date(),
               value: item,
@@ -34,6 +35,7 @@ export default function (arg) {
       })
     } else { // type === 'item'
       var obs = itemsCache[key]
+      if (!obs) return console.warn('received change for a key not present in cache', arg.serviceName, key)
       obs.setValue({
         loading: false,
         loaded: new Date().toISOString(),
