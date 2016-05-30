@@ -61,7 +61,7 @@ function getInputType(f) {
 }
 function appendFilter(filter, filterValues, f, i) {
   if (filterValues[i]() === '') return
-  if (!f.type || f.type === 'text') return filter[f.path] = {$regex: filterValues[i](), $options: 'i'}
+  if (!f.type || f.type === 'text') return filter[f.path] = f.operator ? {[f.operator]: filterValues[i]()} : {$regex: filterValues[i](), $options: 'i'}
   if (f.type === 'boolean') return filter[f.path] = (filterValues[i]() === '$true' ? true : {$ne: true})
   if (f.type.type  === 'select') return filter[f.path] = filterValues[i]()
   if (f.type === 'date') return filter[f.path] = {[f.operator || '$eq']: filterValues[i]()}
