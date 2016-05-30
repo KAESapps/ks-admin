@@ -6,12 +6,12 @@ import {convertFieldArg, fieldValueViewDefault} from '../collectionsExplorer'
 import Table from 'react-semantify/lib/collections/table'
 import Icon from 'react-semantify/lib/elements/icon'
 
-var fieldView = function (collections, collectionId, itemId, fieldArg) {
+var fieldView = function (collections, collection, itemId, fieldArg) {
   var fieldArg = convertFieldArg(fieldArg)
   var fieldValueView = (typeof fieldArg.type === 'function' ?
     fieldArg.type :
     fieldValueViewDefault
-  )(collections, collectionId, itemId, fieldArg)
+  )(collections, collection, itemId, fieldArg)
 
   return function () {
     return el(fieldValueView)
@@ -19,10 +19,14 @@ var fieldView = function (collections, collectionId, itemId, fieldArg) {
 }
 
 
-export default function ({fields, pageSize, sort, selectable = true }) {
+export default function ({fields, pageSize, sort, selectable }) {
   pageSize = pageSize || 10
-  return function (collections, collectionId, $itemId) {
-    var model = collections[collectionId].model
+  return function (collections, collection, $itemId) {
+    if (selectable === undefined) {
+      selectable = ($itemId !== undefined)
+    }
+
+    var model = typeof collection === 'string' ? collections[collection].model : collection
     var currentPage = observable(0)
     var previous = () => currentPage(currentPage()-1)
     var next = () => currentPage(currentPage()+1)
@@ -51,13 +55,13 @@ export default function ({fields, pageSize, sort, selectable = true }) {
               return el('tr', {
                 key: id,
                 onClick: () => selectable && $itemId(id),
-                style: { cursor: selectable ? 'pointer' : null }
+                style: { cursor: selectable ? 'pointer' : null },
               },
                 selectable && el('td', null,
                   el(Icon, {className: 'chevron circle right', style: { color: 'gray' } })
                 ),
                 fields.map((f, key) => {
-                  var cmp = fieldView(collections, collectionId, id, f)
+                  var cmp = fieldView(collections, collection, id, f)
                   return el('td', {key},
                     el(cmp)
                   )
