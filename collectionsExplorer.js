@@ -213,10 +213,8 @@ var listViewDefault = function (collections, collectionId, $itemId) {
 
   return observer(function () {
     return el('div', null,
-      el('div', { className: 'ui inverted menu' },
+      !preventAdd && el('div', { className: 'ui inverted menu' },
         el('div', { className: 'item' },
-          preventAdd ?
-            null :
             el('div', { className: 'ui primary button', onClick: add },
               el('i', { className: 'plus icon' }),
               "Ajouter un élément"
