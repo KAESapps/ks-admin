@@ -15,8 +15,9 @@ const booleanOptions = [
 ]
 
 export default function ({view, filters}) {
-  return function (collections, collectionId, $itemId) {
-    var model = collections[collectionId].model
+  return function (collections, collection, $itemId) {
+    var model = typeof collection === 'string' ? collections[collection].model : collection
+    const collectionId = collection.name || collection
     var filterValues = filters.map(f => observable(f.default != null ? f.default : ''))
 
     var virtualCollectionId = collectionId+'/'+Date.now()
