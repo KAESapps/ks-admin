@@ -37,7 +37,10 @@ export default function ({view, filters}) {
           el('form', {className: "content form-horizontal"}, filters.map((f, i) => {
             var inputType = getInputType(f)
             var options = null
-            if (inputType === 'select')  options = f.type === 'boolean' ? booleanOptions : [['', "tout"]].concat(f.type.options)
+            if (inputType === 'select') {
+              const allLabel = f.type.allLabel || "Tout"
+              options = f.type === 'boolean' ? booleanOptions : [['', allLabel]].concat(f.type.options)
+            }
             return el(Input, {key: i, label: f.label, labelClassName: "col-xs-2", wrapperClassName: "col-xs-10"},
               el(Input, {type: inputType, value: filterValues[i](), onChange: ev => filterValues[i](ev.target.value)},
                 options && options.map((o, i) => el('option', {key: i, value: o[0]}, o[1]))
