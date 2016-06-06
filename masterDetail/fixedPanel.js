@@ -2,22 +2,17 @@ import { createElement as el } from 'react'
 import { observable } from 'mobservable'
 import { observer } from 'mobservable-react'
 
-import { innerItemViewDefault } from '../collectionsExplorer'
+import { itemViewDefault, listViewDefault } from '../collectionsExplorer'
 
-export var makeInnerItemViewDefault = function(arg) {
-  return function(collections, collectionId, itemId) {
-    return innerItemViewDefault(collections, collectionId, itemId, arg)
-  }
-}
+export default function(args = {}) {
 
-export default function(args) {
-  var listViewCtr = args.list
-  var itemViewCtr = (typeof args.item === 'function') ? args.item : makeInnerItemViewDefault(args.item.view)
+  return function ({ collections, collection }) {
+    var listViewCtr = (typeof args.list === 'function') ? args.list : listViewDefault
+    var itemViewCtr = (typeof args.item === 'function') ? args.item : itemViewDefault
 
-  return function (collections, collectionId) {
     var selected = observable(null)
     var back = selected.bind(null, null)
-    var listCmp = listViewCtr(collections, collectionId, selected)
+    var listCmp = listViewCtr(collections, collection, selected)
 
     return observer(function () {
       var itemId = selected()
@@ -35,7 +30,7 @@ export default function(args) {
         el('div', {
           className: 'column',
         },
-          itemId ? el(itemViewCtr(collections, collectionId, itemId, back)) : null
+          itemId ? el(itemViewCtr(collections, collection, itemId, back)) : null
         )
       )
     })

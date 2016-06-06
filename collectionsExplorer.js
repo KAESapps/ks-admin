@@ -98,7 +98,7 @@ export var innerItemViewDefault = function (collections, collectionId, itemId, a
   }
 }
 
-var itemViewDefault = function (collections, collectionId, itemId, back) {
+export var itemViewDefault = function (collections, collectionId, itemId, back) {
   var model = collections[collectionId].model
   var itemViewArg = collections[collectionId].views.item // ici, ça ne peut pas être une fonction, c'est forcément une config
   // si c'est un string, ou un array, c'est en fait directements les fields
@@ -202,7 +202,7 @@ var innerlistViewDefault = function (collections, collectionId, $itemId) {
   })
 }
 
-var listViewDefault = function (collections, collectionId, $itemId) {
+export var listViewDefault = function (collections, collectionId, $itemId) {
   var model = collections[collectionId].model
   var args = collections[collectionId].views.list
   var preventAdd = (typeof args === 'object') ? args.preventAdd : false
