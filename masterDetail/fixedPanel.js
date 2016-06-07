@@ -19,6 +19,9 @@ export default function(args = {}) {
       return el('div', { className: 'ui equal width grid divided' },
         el('div', {
           className: 'four wide column',
+          style: {
+            overflow: 'auto',
+          },
         },
         // on garde la liste montée pour ne pas relacher le cache de données
           el(listCmp)
