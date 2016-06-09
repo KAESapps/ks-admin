@@ -23,7 +23,7 @@ export default class Command {
     // on ne le met pas sur le prototype pour éviter de devoir le binder à this
     this.trigger = function() {
       this.setStatus('inProgress')
-      return action.apply(null, arguments).then(function (res) {
+      return action.apply(null, arguments).then((res) => {
         this.setStatus('success', res)
         setTimeout(()=>{
           this.setStatus('idle')
