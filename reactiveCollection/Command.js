@@ -1,4 +1,4 @@
-import { observable } from 'mobservable'
+import { observable, asReference, transaction } from 'mobservable'
 
 var locales = {
   fr: {
@@ -15,28 +15,44 @@ var locales = {
   },
 }
 
-export default class Atom {
+export default class Command {
   constructor (action) {
     var status = this._status = observable('idle')
+    this._detail = observable(asReference(null))
     this._view = observable(() => status())
     // on ne le met pas sur le prototype pour éviter de devoir le binder à this
     this.trigger = function() {
-      status('inProgress')
+      this.setStatus('inProgress')
       return action.apply(null, arguments).then(function (res) {
-        status('success')
-        setTimeout(()=>status('idle'), 2000)
+        this.setStatus('success', res)
+        setTimeout(()=>{
+          this.setStatus('idle')
+        }, 2000)
         return res
-      }, function (err) {
-        status('error')
-        setTimeout(()=>status('idle'), 2000)
+      }, (err) => {
+        this.setStatus('error', err)
+        setTimeout(()=>{
+          this.setStatus('idle')
+        }, 2000)
         throw err
       })
     }
   }
+
+  setStatus(status, detail = null) {
+    transaction(()=>{
+      this._status(status)
+      this._detail(detail)
+    })
+  }
+
   onBecomeUnobserved (cb) {
     return this._view.$mobservable.onceSleep(cb)
   }
   status (locale) {
     return locale ? locales[locale][this._view()]: this._view()
+  }
+  statusDetail() {
+    return this._detail()
   }
 }
