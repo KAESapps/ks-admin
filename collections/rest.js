@@ -170,9 +170,13 @@ export default function (arg) {
     model[actionName] = function () {
       const actionParams = actions[actionName]
 
-      var requestArgs = actionParams.requestArgs.apply(null, arguments)
-      var resp = request(requestArgs).entity()
+      if (typeof actionParams === 'function') {
+        var requestArgs = actionParams.apply(null, arguments)
+      } else {
+        var requestArgs = actionParams.requestArgs.apply(null, arguments)
+      }
       // on retourne la réponse à la commande, mais après que le cache ait été rafraichit
+      var resp = request(requestArgs).entity()
       return resp.then(refreshCache).catch(err => {
         console.error(actionName, url, err)
         throw err
