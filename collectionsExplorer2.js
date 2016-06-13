@@ -12,7 +12,10 @@ const masterDetail = function({ views, defaultActive }) {
     var selected = observable(defaultActive)
 
     const getItems = () => keys(context.collections)
-    const getItemLabel = (id) => context.collections[id].label
+    const getItemLabel = (id) => {
+      const label = context.collections[id].label
+      return typeof label === 'function' ? label(context) : label
+    }
     const getContentView = (id) => {
       return views[id] ? views[id](create(context, { collection: id })) : collectionEditor(context.collections, id)
     }
