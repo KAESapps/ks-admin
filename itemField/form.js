@@ -25,7 +25,7 @@ export var fieldEditor = function(collections, collectionId, itemId, $patch, opt
     return el(Input, {
       type: type,
       // bsStyle: partEditing ? "success" : null,
-      value: value,
+      value: value || "",
       onChange: ev => onChange(type === 'number' ? ev.target.valueAsNumber : ev.target.value),
     })
   })
