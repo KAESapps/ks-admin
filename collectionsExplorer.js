@@ -51,7 +51,7 @@ export var fieldValueViewDefault = function (collections, collectionId, itemId, 
     }
     return el(Input, {
       type: fieldType,
-      value: fieldValue,
+      value: fieldValue || "",
       onChange: edit,
       buttonAfter: el(Button, {bsStyle: 'link', key: 'edit', onClick: edit},
         el(Glyphicon, { glyph: "pencil" })
@@ -98,55 +98,58 @@ export var innerItemViewDefault = function (collections, collectionId, itemId, a
   }
 }
 
-export var itemViewDefault = function (collections, collectionId, itemId, back) {
-  var model = collections[collectionId].model
-  var itemViewArg = collections[collectionId].views.item // ici, ça ne peut pas être une fonction, c'est forcément une config
-  // si c'est un string, ou un array, c'est en fait directements les fields
-  // TODO: pas très clair, à remanier
-  if (typeof itemViewArg === 'string') itemViewArg = [itemViewArg] // un seul champ
-  if (Array.isArray(itemViewArg)) itemViewArg = {view: itemViewArg}
-  var preventDelete = itemViewArg.preventDelete
-  var innerItemView = (typeof itemViewArg.view === 'function') ?
-    itemViewArg.view(collections, collectionId, itemId) :
-    innerItemViewDefault(collections, collectionId, itemId, itemViewArg.view)
-  var del = () => {
-    model.remove(itemId).then(back)
-  }
+export const itemViewWithDefaults = function(arg = {}) {
+  return function (collections, collectionId, itemId, back) {
+    var model = collections[collectionId].model
+    var itemViewArg = arg.view || collections[collectionId].views.item // ici, ça ne peut pas être une fonction, c'est forcément une config
+    // si c'est un string, ou un array, c'est en fait directements les fields
+    // TODO: pas très clair, à remanier
+    if (typeof itemViewArg === 'string') itemViewArg = [itemViewArg] // un seul champ
+    if (Array.isArray(itemViewArg)) itemViewArg = {view: itemViewArg}
+    var preventDelete = itemViewArg.preventDelete
+    var innerItemView = (typeof itemViewArg.view === 'function') ?
+      itemViewArg.view(collections, collectionId, itemId) :
+      innerItemViewDefault(collections, collectionId, itemId, itemViewArg.view)
+    var del = () => {
+      model.remove(itemId).then(back)
+    }
 
-  return observer(function () {
-    // if (itemId === null) return null // normalement c'est déjà fait par le parent
-    var item = model.get(itemId)
-    var itemLabel = itemId
-    if (item.loaded && itemViewArg.label) itemLabel = (itemViewArg.label === 'function') ? itemViewArg(item.value) : get(item.value, itemViewArg.label)
-    return el('div', {},
-      el('div', { className: 'ui inverted menu' },
-        el('a', { className: 'item', onClick: back },
-          el('i', { className: 'angle left icon' }),
-          'retour'
-        ),
-        el('span', {className: 'item'}, itemLabel),
-        el('div', { className: 'right menu'},
-          el('a', { className: 'item', onClick: model.refresh },
-            el('i', { className: 'refresh icon' })
+    return observer(function () {
+      // if (itemId === null) return null // normalement c'est déjà fait par le parent
+      var item = model.get(itemId)
+      var itemLabel = itemId
+      if (item.loaded && itemViewArg.label) itemLabel = (itemViewArg.label === 'function') ? itemViewArg(item.value) : get(item.value, itemViewArg.label)
+      return el('div', {},
+        el('div', { className: 'ui inverted menu' },
+          el('a', { className: 'item', onClick: back },
+            el('i', { className: 'angle left icon' }),
+            'retour'
           ),
-          el('div', { className: 'ui simple dropdown item' },
-            el('i', { className: 'setting icon' }),
-            el('i', { className: 'dropdown icon' }),
-            el('div', { className: 'menu' },
-              preventDelete ? null : el('a', { className: 'red item ', onClick: del }, 'supprimer')
+          el('span', {className: 'item'}, itemLabel),
+          el('div', { className: 'right menu'},
+            el('a', { className: 'item', onClick: model.refresh },
+              el('i', { className: 'refresh icon' })
+            ),
+            el('div', { className: 'ui simple dropdown item' },
+              el('i', { className: 'setting icon' }),
+              el('i', { className: 'dropdown icon' }),
+              el('div', { className: 'menu' },
+                preventDelete ? null : el('a', { className: 'red item ', onClick: del }, 'supprimer')
+              )
             )
           )
-        )
-      ),
-      !(item.loaded) ?
-        el('div', {}, 'chargement...'):
-        item.value ?
-          el(innerItemView) :
-          el('div', {}, 'Elément inexistant')
-    )
-  })
+        ),
+        !(item.loaded) ?
+          el('div', {}, 'chargement...'):
+          item.value ?
+            el(innerItemView) :
+            el('div', {}, 'Elément inexistant')
+      )
+    })
+  }
 }
 
+export var itemViewDefault = itemViewWithDefaults()
 
 var listItemViewDefault = function (collections, collectionId, $selectedItem) {
   var model = collections[collectionId].model
@@ -202,31 +205,33 @@ var innerlistViewDefault = function (collections, collectionId, $itemId) {
   })
 }
 
-export var listViewDefault = function (collections, collectionId, $itemId) {
-  var model = collections[collectionId].model
-  var args = collections[collectionId].views.list
-  var preventAdd = (typeof args === 'object') ? args.preventAdd : false
-  var add = () => model.add({}).then(itemId => {
-    $itemId(itemId)
-  })
-  var innerView = (typeof args.view === 'function' ? args.view : innerlistViewDefault)(collections, collectionId, $itemId)
+export const listViewWithDefaults = function(arg) {
+  return function (collections, collectionId, $itemId) {
+    var model = collections[collectionId].model
+    var args = arg || collections[collectionId].views.list
+    var preventAdd = (typeof args === 'object') ? args.preventAdd : false
+    var add = () => model.add({}).then(itemId => {
+      $itemId(itemId)
+    })
+    var innerView = (typeof args.view === 'function' ? args.view : innerlistViewDefault)(collections, collectionId, $itemId)
 
-  return observer(function () {
-    return el('div', null,
-      !preventAdd && el('div', { className: 'ui inverted menu' },
-        el('div', { className: 'item' },
-            el('div', { className: 'ui primary button', onClick: add },
-              el('i', { className: 'plus icon' }),
-              "Ajouter un élément"
-            )
-        )
-      ),
-      el(innerView)
-    )
-  })
+    return observer(function () {
+      return el('div', null,
+        !preventAdd && el('div', { className: 'ui inverted menu' },
+          el('div', { className: 'item' },
+              el('div', { className: 'ui primary button', onClick: add },
+                el('i', { className: 'plus icon' }),
+                "Ajouter un élément"
+              )
+          )
+        ),
+        el(innerView)
+      )
+    })
+  }
 }
 
-
+export var listViewDefault = listViewWithDefaults()
 
 export var collectionEditor = function (collections, collectionId) {
   var selected = observable(null)

@@ -2,13 +2,12 @@ import { createElement as el } from 'react'
 import { observable } from 'mobservable'
 import { observer } from 'mobservable-react'
 
-import { itemViewDefault, listViewDefault } from '../collectionsExplorer'
+import { itemViewWithDefaults, listViewWithDefaults } from '../collectionsExplorer'
 
 export default function(args = {}) {
-
   return function ({ collections, collection }) {
-    var listViewCtr = (typeof args.list === 'function') ? args.list : listViewDefault
-    var itemViewCtr = (typeof args.item === 'function') ? args.item : itemViewDefault
+    var listViewCtr = (typeof args.list === 'function') ? args.list : listViewWithDefaults(args.list)
+    var itemViewCtr = (typeof args.item === 'function') ? args.item : itemViewWithDefaults(args.item)
 
     var selected = observable(null)
     var back = selected.bind(null, null)
