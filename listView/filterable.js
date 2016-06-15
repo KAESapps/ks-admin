@@ -19,10 +19,18 @@ export default function ({view, filters}) {
     var model = typeof collection === 'string' ? collections[collection].model : collection
     const collectionId = collection.name || collection
     var filterValues = filters.map(f => observable(f.default != null ? f.default : ''))
+    var filterCmps = filters.map((f, i) => {
+      if (typeof f.view === 'function') {
+        return f.view(collections, collection, filterValues, i)
+      }
+    })
 
     var virtualCollectionId = collectionId+'/'+Date.now()
     var virtualCollection = {
-      model: filteredCollection(model, filters, filterValues),
+      model: filteredCollection(model, () => {
+        var filter = {}
+        filters.forEach(appendFilter.bind(null, filter, filterValues))
+      }),
     }
     var augmentedCollections = create(collections, {[virtualCollectionId]: virtualCollection})
     var listView = view(augmentedCollections, virtualCollectionId, $itemId)
@@ -35,6 +43,9 @@ export default function ({view, filters}) {
             "Filtrer la liste"
           ),
           el('form', {className: "content form-horizontal"}, filters.map((f, i) => {
+            if (typeof f.view === 'function') {
+              return el(filterCmps[i])
+            }
             var inputType = getInputType(f)
             var options = null
             if (inputType === 'select') {
@@ -53,6 +64,24 @@ export default function ({view, filters}) {
     })
   }
 }
+
+function appendFilter(filter, filterValues, f, i) {
+  if (typeof f.toQuery === 'function') return f.toQuery(filter, filterValues, f, i)
+  if (filterValues[i]() === '') return
+  if (!f.type || f.type === 'text') return filter[f.path] = f.operator ? {[f.operator]: filterValues[i]()} : {$regex: filterValues[i](), $options: 'i'}
+  if (f.type === 'boolean') return filter[f.path] = (filterValues[i]() === '$true' ? true : {$ne: true})
+  if (f.type.type  === 'select') return filter[f.path] = filterValues[i]()
+  if (f.type === 'date') return filter[f.path] = {[f.operator || '$eq']: filterValues[i]()}
+  if (f.type === 'json') {
+    try {
+      var val = JSON.parse(filterValues[i]())
+      return filter[f.path] = {[f.operator]: val}
+    } catch (err) {
+      return filter
+    }
+  }
+}
+
 
 function getInputType(f) {
   if (!f.type || f.type === 'text') return 'text'
