@@ -32,7 +32,7 @@ export default function(args = {}) {
         el('div', {
           className: 'column',
         },
-          itemId ? el(itemViewCtr(collections, collection, itemId, back)) : null
+          el(itemViewCtr(collections, collection, itemId, back, selected))
         )
       )
     })

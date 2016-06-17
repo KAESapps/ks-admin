@@ -122,7 +122,8 @@ export const itemViewWithDefaults = function(arg = {}) {
     }
 
     return observer(function () {
-      // if (itemId === null) return null // normalement c'est déjà fait par le parent
+      if (itemId === null) return null
+      
       var item = model.get(itemId)
       var itemLabel = itemId
       if (item.loaded && itemViewArg.label) itemLabel = (itemViewArg.label === 'function') ? itemViewArg(item.value) : get(item.value, itemViewArg.label)
