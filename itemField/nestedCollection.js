@@ -1,6 +1,7 @@
 import React from 'react'
 const el = React.createElement
-import {create} from 'lodash'
+import create from 'lodash/create'
+import assign from 'lodash/assign'
 
 import {collectionEditor as collectionEditorDefault} from '../collectionsExplorer'
 import nestedCollection from '../collections/nested'
@@ -17,7 +18,7 @@ export default function (arg) {
     if (arg.extendModel) {
       virtualCollection.model = arg.extendModel(virtualCollection.model, model, itemId)
     }
-    if (typeof arg.view === 'object') Object.assign(virtualCollection, arg.view)
+    if (typeof arg.view === 'object') assign(virtualCollection, arg.view)
     var augmentedCollections = create(collections, {[virtualCollectionId]: virtualCollection})
     if (arg.extendModels) {
       augmentedCollections = arg.extendModels(augmentedCollections, itemId)

@@ -1,6 +1,7 @@
 import React from 'react'
 const el = React.createElement
 import create from 'lodash/create'
+import assign from 'lodash/assign'
 
 import {collectionEditor} from '../collectionsExplorer'
 
@@ -14,7 +15,7 @@ export default function (arg) {
     // comme pour récupérer la liste des trnsactions d'un hotel où il faut préfixer l'id avec 'hotels/'
     var virtualCollectionId = relatedCollectionId+'/'+foreignKeyField+'='+itemId // pratique pour du débug
     var relatedModel = typeof arg.collection === 'string' ? collections[relatedCollectionId].model : arg.collection
-    var virtualCollection = Object.assign({
+    var virtualCollection = assign({
       model: subCollection(relatedModel, foreignKeyField, itemId),
     }, arg.view)
     var augmentedCollections = create(collections, {[virtualCollectionId]: virtualCollection})

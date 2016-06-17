@@ -1,6 +1,7 @@
 import Atom from '../reactiveCollection/Atom'
 import {transaction} from 'mobservable'
 import identity from 'lodash/identity'
+import assign from 'lodash/assign'
 
 export default function (arg) {
   var itemsCache = {}
@@ -123,7 +124,7 @@ export default function (arg) {
       transformResponse: identity
     },
   }
-  if (arg.actions) Object.assign(actions, arg.actions)
+  if (arg.actions) assign(actions, arg.actions)
 
   Object.keys(actions).forEach(function(actionName) {
     model[actionName] = function () {
