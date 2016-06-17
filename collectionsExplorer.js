@@ -4,11 +4,6 @@ const el = React.createElement
 import { observable, transaction } from 'mobservable'
 import { observer } from 'mobservable-react'
 
-import Button from 'react-bootstrap/lib/Button'
-import ListGroup from 'react-bootstrap/lib/ListGroup'
-import ListGroupItem from 'react-bootstrap/lib/ListGroupItem'
-import Input from 'react-bootstrap/lib/Input'
-import Glyphicon from 'react-bootstrap/lib/Glyphicon'
 import Command from './reactiveCollection/Command'
 
 function normalizeEvent (ev, type) {
@@ -30,17 +25,19 @@ export var fieldValueViewDefault = function (collections, collectionId, itemId, 
   return observer(function () {
     var editing = $editing()
     if (editing) {
-      return el(Input, {
-        type: fieldType,
-        value: $inputValue(),
-        onChange: ev => $inputValue(normalizeEvent(ev, fieldType)),
-        buttonAfter: [
-          el(Button, {key: 'cancel', onClick: cancel}, "cancel"),
-          el(Button, {key: 'save', bsStyle: "primary", onClick: save.trigger},
-            save.status() === 'idle' ? 'enregistrer' : save.status('fr')
-          ),
-        ],
-      })
+      return el('div', {
+        className: 'ui action input',
+      },
+        el('input', {
+          type: fieldType,
+          value: $inputValue(),
+          onChange: ev => $inputValue(normalizeEvent(ev, fieldType)),
+        }),
+        el('button', { className: 'ui button', key: 'cancel', onClick: cancel}, "annuler"),
+        el('button', { className: 'ui primary button', key: 'save', onClick: save.trigger},
+          save.status() === 'idle' ? 'enregistrer' : save.status('fr')
+        )
+      )
     }
     var fieldValue = get(model.get(itemId).value, fieldId)
     var edit = function (ev) {
@@ -49,14 +46,18 @@ export var fieldValueViewDefault = function (collections, collectionId, itemId, 
         $inputValue(ev.target.value ? normalizeEvent(ev, fieldType) : fieldValue)
       })
     }
-    return el(Input, {
-      type: fieldType,
-      value: fieldValue || "",
-      onChange: edit,
-      buttonAfter: el(Button, {bsStyle: 'link', key: 'edit', onClick: edit},
-        el(Glyphicon, { glyph: "pencil" })
-      ),
-    })
+    return el('div', {
+      className: 'ui action input',
+    },
+      el('input', {
+        type: fieldType,
+        value: fieldValue || "",
+        onChange: edit,
+      }),
+      el('button', { className: 'ui icon button', key: 'edit', onClick: edit},
+        el('i', { className: "write icon" })
+      )
+    )
   })
 }
 
@@ -78,8 +79,14 @@ export var fieldViewDefault = function (collections, collectionId, itemId, field
   )(collections, collectionId, itemId, fieldArg)
 
   return function () {
-    return el(Input, {label: fieldArg.label, help: fieldArg.tip},
-      el(fieldValueView)
+    return el('div', {
+      className: 'ui form',
+    },
+      el ('div', { className: 'field'},
+        el('label', { className: '' }, fieldArg.label),
+        el(fieldValueView),
+        el('div', { className: 'help' }, fieldArg.tip)
+      )
     )
   }
 }

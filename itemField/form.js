@@ -2,11 +2,8 @@ import get from 'lodash/get'
 import React from 'react'
 const el = React.createElement
 import { observer } from 'mobservable-react'
-import { observable, map} from 'mobservable'
+import { map} from 'mobservable'
 import Command from '../reactiveCollection/Command'
-
-import Button from 'react-bootstrap/lib/Button'
-import Input from 'react-bootstrap/lib/Input'
 
 const preventDefault = ev => ev.preventDefault()
 
@@ -22,7 +19,8 @@ export var fieldEditor = function(collections, collectionId, itemId, $patch, opt
     var value = partEditing ? $patch.get(path) : get(itemValue, path)
 
     if (typeof type === 'function') return el(type, {value, onChange})
-    return el(Input, {
+    return el('input', {
+      className: 'ui input',
       type: type,
       // bsStyle: partEditing ? "success" : null,
       value: value || "",
@@ -39,8 +37,10 @@ export var labeledPart = function(collections, collectionId, itemId, $patch, opt
     fieldEditor(collections, collectionId, itemId, $patch, options)
 
   return function () {
-    return el(Input, {label: label, help: options.help},
-      el(cmp)
+    return el('div', { className: 'field' },
+      el('label', {}, label),
+      el(cmp),
+      el('p', {}, options.help)
     )
   }
 }
@@ -61,17 +61,27 @@ export default function (parts) {
 
     return observer(function () {
       var editing = $patch.keys().length > 0
-      return el('div', null,
+      return el('div', { className: 'ui form'},
         el('form', {onSubmit: preventDefault}, cmps.map((cmp, i) => el(cmp, {key: i}))),
-        editing && save.status() === 'idle' ? el(Button, {
+        el('div', { className: 'ui hidden divider'}),
+        editing && save.status() === 'idle' ? el('button', {
+          className: 'ui primary button',
           onClick: save.trigger,
           // disabled: !editing || save.status() !== 'idle',
-        }, 'enregistrer') : null,
-        editing && save.status() === 'idle' ? el(Button, {
+        }, 'Enregistrer') : null,
+        save.status() === 'inProgress' ? el('button', {
+          className: 'ui primary loading button',
+        }, 'Enregistrer') : null,
+        save.status() === 'success' ? el('button', {
+          className: 'ui positive button',
+          disabled: true,
+        }, 'Enregistré') : null,
+        editing && save.status() === 'idle' ? el('button', {
           // disabled: !editing || save.status() !== 'idle',
+          className: 'ui button',
           onClick: () => $patch.clear(),
         }, "Annuler") : null,
-        save.status() === 'idle' ? null : el('span', null, save.status('fr'))
+        save.status() === 'error' ? el('div', { className: 'ui negative message' }, save.status('fr')) : null
       )
     })
   }

@@ -17,6 +17,7 @@ const itemPicker = function({collection, labelPath, onChange}){
         className: 'ui vertical menu',
         style: {
           position: 'absolute',
+          zIndex: 1,
           background: 'white',
         },
       },
