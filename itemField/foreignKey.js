@@ -9,7 +9,7 @@ export default function (arg) {
   var relatedCollection = arg.collection
   var labelField = arg.labelField || arg.path // TODO: deprecate use of 'labelField'
   return function (collections, collectionId, itemId, fieldArg) {
-    var fieldId = fieldArg.path
+    var fieldId = arg.fkPath || fieldArg.path
     var model = collections[collectionId].model
 
     return observer(function () {
