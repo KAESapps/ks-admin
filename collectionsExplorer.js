@@ -159,61 +159,76 @@ export const itemViewWithDefaults = function(arg = {}) {
 
 export var itemViewDefault = itemViewWithDefaults()
 
-var listItemViewDefault = function (collections, collectionId, $selectedItem) {
-  var model = collections[collectionId].model
-  var labelArg = collections[collectionId].views.list
-  if (typeof labelArg === 'object' && labelArg.view) labelArg = labelArg.view
-  var header = '_id', body
-  if (typeof labelArg === 'string') {
-    header = labelArg
-    body = '_id'
-  } else {
-    header = labelArg.header
-    body = labelArg.body
-  }
-  if (body) {
-    body = Array.isArray(body) ? body : [body]
-    var bodyCmps = body.map(arg => typeof arg === 'function' ?
-      arg(collections, collectionId):
-      arg
-    )
-  }
-  return observer(function ({itemId}) {
-    var item = model.get(itemId)
-    var loaded = item.loaded
-    var headerValue = loaded ? get(item.value, header) : itemId
-    var children = body ?
-      loaded ?
-        bodyCmps.map((cmp, i) => (typeof cmp === 'string') ?
-          get(item.value, cmp) :
-          el(cmp, {key: i, itemId: itemId})) :
-        'chargement...' :
-      null
-    return el(ListGroupItem, {
-      header: headerValue,
-      onClick: $selectedItem.bind(null, itemId),
-    }, children)
-  })
-}
-
-var innerlistViewDefault = function (collections, collectionId, $itemId) {
-  var model = collections[collectionId].model
-  var args = collections[collectionId].views.list
-  var $sort = (typeof args === 'object') ? args.orderBy : null
-  var listItemView = listItemViewDefault(collections, collectionId, $itemId)
-  return observer(function() {
-    var itemIds = $sort ? model.query({$sort}) : model.query()
-    if (!(itemIds.loaded)) {
-      return el('div', {}, 'chargement...')
+const listItemViewWithDefaults = function(arg) {
+  return function (collections, collectionId, $selectedItem) {
+    var model = collections[collectionId].model
+    var labelArg = arg || collections[collectionId].views.list
+    if (typeof labelArg === 'object' && labelArg.view) labelArg = labelArg.view
+    var header = '_id', body
+    if (typeof labelArg === 'string') {
+      header = labelArg
+      body = '_id'
+    } else {
+      header = labelArg.header
+      body = labelArg.body
     }
-
-    return el(ListGroup, null, itemIds.value.map(id =>
-      el(listItemView, {key: id, itemId: id})
-    ))
-  })
+    if (body) {
+      body = Array.isArray(body) ? body : [body]
+      var bodyCmps = body.map(arg => typeof arg === 'function' ?
+        arg(collections, collectionId):
+        arg
+      )
+    }
+    return observer(function ({itemId}) {
+      var item = model.get(itemId)
+      var loaded = item.loaded
+      var headerValue = loaded ? get(item.value, header) : itemId
+      var children = body ?
+        loaded ?
+          bodyCmps.map((cmp, i) => (typeof cmp === 'string') ?
+            get(item.value, cmp) :
+            el(cmp, {key: i, itemId: itemId})) :
+          'chargement...' :
+        null
+      return el('a', {
+        className: 'item' + ($selectedItem && ($selectedItem() === itemId) ? ' active' : ''),
+        onClick: $selectedItem && $selectedItem.bind(null, itemId),
+      },
+        el('div', { className: 'ui medium header' }, headerValue),
+        children)
+    })
+  }
 }
+
+export const listOnlyViewWithDefaults = function(arg) {
+  var defaultListItemView = listItemViewWithDefaults(arg)
+
+  return function (collections, collectionId, $itemId) {
+    var model = collections[collectionId].model
+    var args = arg || collections[collectionId].views.list
+    var $sort = (typeof args === 'object') ? args.orderBy : null
+    var listItemView = defaultListItemView(collections, collectionId, $itemId)
+    return observer(function() {
+      var itemIds = $sort ? model.query({$sort}) : model.query()
+      if (!(itemIds.loaded)) {
+        return el('div', {}, 'chargement...')
+      }
+
+      if (itemIds.value.length > 0) {
+        return el('div', { className: 'ui fluid vertical menu' }, itemIds.value.map(id =>
+          el(listItemView, {key: id, itemId: id})
+        ))
+      } else {
+        return el('div')
+      }
+    })
+  }
+}
+
 
 export const listViewWithDefaults = function(arg) {
+  var innerlistViewDefault = listOnlyViewWithDefaults(arg)
+
   return function (collections, collectionId, $itemId) {
     var model = collections[collectionId].model
     var args = arg || collections[collectionId].views.list
