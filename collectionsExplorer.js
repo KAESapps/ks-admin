@@ -248,13 +248,15 @@ export const listViewWithDefaults = function(arg) {
     })
     var innerView = (typeof args.view === 'function' ? args.view : innerlistViewDefault)(collections, collectionId, $itemId)
 
+    const addLabel = args.addLabel || "Ajouter un élément"
+
     return observer(function () {
       return el('div', null,
         !preventAdd && el('div', { className: 'ui inverted menu' },
           el('div', { className: 'item' },
               el('div', { className: 'ui primary button', onClick: add },
                 el('i', { className: 'plus icon' }),
-                "Ajouter un élément"
+                addLabel
               )
           )
         ),
