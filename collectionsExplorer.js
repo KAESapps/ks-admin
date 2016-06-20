@@ -211,7 +211,10 @@ const listItemViewWithDefaults = function(arg) {
         null
       return el('a', {
         className: 'item' + ($selectedItem && ($selectedItem() === itemId) ? ' active' : ''),
-        onClick: $selectedItem && $selectedItem.bind(null, itemId),
+        onClick: $selectedItem && ((ev) => {
+          $selectedItem(itemId)
+          ev.stopPropagation()
+        }),
       },
         el('div', { className: 'ui medium header', style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, headerValue),
         children)

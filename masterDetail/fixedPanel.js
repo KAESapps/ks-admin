@@ -5,16 +5,33 @@ import { observer } from 'mobservable-react'
 import { itemViewWithDefaults, listViewWithDefaults } from '../collectionsExplorer'
 
 export default function(args = {}) {
+  let { setActive, getActive } = args
+
   return function ({ collections, collection }) {
     var listViewCtr = (typeof args.list === 'function') ? args.list : listViewWithDefaults(args.list)
     var itemViewCtr = (typeof args.item === 'function') ? args.item : itemViewWithDefaults(args.item)
 
-    var selected = observable(null)
-    var back = selected.bind(null, null)
-    var listCmp = listViewCtr(collections, collection, selected)
+    let getSetActive
+    if (!setActive && !getActive) {
+      getSetActive = observable(null)
+      setActive = getSetActive
+      getActive = getSetActive
+    } else {
+      getSetActive = function(id) {
+        if (arguments.length > 0) {
+          return setActive(id)
+        } else {
+          return getActive()
+        }
+      }
+    }
+
+
+    var back = setActive.bind(null, null)
+    var listCmp = listViewCtr(collections, collection, getSetActive)
 
     return observer(function () {
-      var itemId = selected()
+      var itemId = getActive()
       return el('div', { className: 'ui equal width grid divided' },
         el('div', {
           className: 'four wide column',
@@ -32,7 +49,7 @@ export default function(args = {}) {
         el('div', {
           className: 'column',
         },
-          el(itemViewCtr(collections, collection, itemId, back, selected))
+          el(itemViewCtr(collections, collection, itemId, back, getSetActive))
         )
       )
     })
