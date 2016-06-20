@@ -166,13 +166,20 @@ const listItemViewWithDefaults = function(arg) {
     var labelArg = arg || collections[collectionId].views.list
     if (typeof labelArg === 'object' && labelArg.view) labelArg = labelArg.view
     var header = '_id', body
-    if (typeof labelArg === 'string') {
-      header = labelArg
-      body = '_id'
-    } else {
+    if (typeof labelArg === 'object' && 'header' in labelArg) {
       header = labelArg.header
       body = labelArg.body
+    } else {
+      header = labelArg
+      body = '_id'
     }
+
+    header = Array.isArray(header) ? header : [header]
+    var headerParts = header.map(arg => typeof arg === 'function' ?
+      arg(collections, collectionId):
+      arg
+    )
+
     if (body) {
       body = Array.isArray(body) ? body : [body]
       var bodyCmps = body.map(arg => typeof arg === 'function' ?
@@ -180,10 +187,21 @@ const listItemViewWithDefaults = function(arg) {
         arg
       )
     }
+
+
     return observer(function ({itemId}) {
       var item = model.get(itemId)
       var loaded = item.loaded
-      var headerValue = loaded ? get(item.value, header) : itemId
+
+      var headerValue = loaded ?
+        headerParts.map((part, i) => {
+          return el('span', { style: {'marginRight': '1ex' }}, (typeof part === 'string') ?
+            get(item.value, part) :
+            el(part, { key: i, itemId: itemId })
+          )
+        }) :
+        itemId
+
       var children = body ?
         loaded ?
           bodyCmps.map((cmp, i) => (typeof cmp === 'string') ?
@@ -195,7 +213,7 @@ const listItemViewWithDefaults = function(arg) {
         className: 'item' + ($selectedItem && ($selectedItem() === itemId) ? ' active' : ''),
         onClick: $selectedItem && $selectedItem.bind(null, itemId),
       },
-        el('div', { className: 'ui medium header' }, headerValue),
+        el('div', { className: 'ui medium header', style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, headerValue),
         children)
     })
   }

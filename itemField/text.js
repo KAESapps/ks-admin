@@ -10,10 +10,12 @@ export const asText = function(transformValue) {
     var model = typeof collection === 'string' ? collections[collection].model : collection
 
     return observer(function () {
+      if (!itemId) return null
+      
       var item = model.get(itemId)
       if (!item.loaded) return el('span', null, '...')
 
-      return el('div', null, fieldArg.path ?
+      return el('span', null, fieldArg.path ?
         transformValue(get(item.value, fieldArg.path)) :
         transformValue(item.value)
       )
@@ -22,4 +24,3 @@ export const asText = function(transformValue) {
 }
 
 export default asText(toString)
-
