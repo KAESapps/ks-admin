@@ -30,6 +30,7 @@ export default function ({view, filters}) {
       model: filteredCollection(model, () => {
         var filter = {}
         filters.forEach(appendFilter.bind(null, filter, filterValues))
+        return filter
       }),
     }
     var augmentedCollections = create(collections, {[virtualCollectionId]: virtualCollection})
