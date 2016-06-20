@@ -114,6 +114,7 @@ export const itemViewWithDefaults = function(arg = {}) {
     if (typeof itemViewArg === 'string') itemViewArg = [itemViewArg] // un seul champ
     if (Array.isArray(itemViewArg)) itemViewArg = {view: itemViewArg}
     var preventDelete = itemViewArg.preventDelete
+    var enableRefresh = itemViewArg.enableRefresh || !model.isReactive
     var innerItemView = (typeof itemViewArg.view === 'function') ?
       itemViewArg.view(collections, collectionId, itemId) :
       innerItemViewDefault(collections, collectionId, itemId, itemViewArg.view)
@@ -123,7 +124,7 @@ export const itemViewWithDefaults = function(arg = {}) {
 
     return observer(function () {
       if (itemId === null) return null
-      
+
       var item = model.get(itemId)
       var itemLabel = itemId
       if (item.loaded && itemViewArg.label) itemLabel = (itemViewArg.label === 'function') ? itemViewArg(item.value) : get(item.value, itemViewArg.label)
@@ -135,14 +136,14 @@ export const itemViewWithDefaults = function(arg = {}) {
           ),
           el('span', {className: 'item'}, itemLabel),
           el('div', { className: 'right menu'},
-            el('a', { className: 'item', onClick: model.refresh },
+            enableRefresh && el('a', { className: 'item', onClick: model.refresh },
               el('i', { className: 'refresh icon' })
             ),
-            el('div', { className: 'ui simple dropdown item' },
+            !preventDelete && el('div', { className: 'ui simple dropdown item' },
               el('i', { className: 'setting icon' }),
               el('i', { className: 'dropdown icon' }),
               el('div', { className: 'menu' },
-                preventDelete ? null : el('a', { className: 'red item ', onClick: del }, 'supprimer')
+                el('a', { className: 'red item ', onClick: del }, 'supprimer')
               )
             )
           )
@@ -206,10 +207,19 @@ export const listOnlyViewWithDefaults = function(arg) {
   return function (collections, collectionId, $itemId) {
     var model = collections[collectionId].model
     var args = arg || collections[collectionId].views.list
-    var $sort = (typeof args === 'object') ? args.orderBy : null
+    var sortArg = (typeof args === 'object') ? args.orderBy : null
+    var limitArg = (typeof args === 'object') ? args.limit : null
     var listItemView = defaultListItemView(collections, collectionId, $itemId)
     return observer(function() {
-      var itemIds = $sort ? model.query({$sort}) : model.query()
+      const queryArgs = {}
+      if (sortArg) {
+        queryArgs.$sort = sortArg
+      }
+      if (limitArg) {
+        queryArgs.$limit = limitArg
+      }
+
+      var itemIds = model.query(queryArgs)
       if (!(itemIds.loaded)) {
         return el('div', {}, 'chargement...')
       }
@@ -256,27 +266,33 @@ export const listViewWithDefaults = function(arg) {
 
 export var listViewDefault = listViewWithDefaults()
 
+export const configureCollectionEditor = function(arg) {
+  return function (collections, collectionId) {
+    var selected = observable(null)
+    var back = selected.bind(null, null)
+    var listViewArg = arg.list
+    var listCmp = (typeof listViewArg === 'function' ? listViewArg : listViewDefault)(collections, collectionId, selected)
+    var itemViewArg = arg.item
+    var itemView = (typeof itemViewArg === 'function') ? itemViewArg : itemViewDefault
+    return observer(function () {
+      var itemId = selected()
+      return el('div', {}, [
+        el('div', {key: 'list', style: {display: itemId ? 'none' : undefined}},
+        // on garde la liste montée pour ne pas relacher le cache de données
+          el(listCmp)
+        ),
+        // on crée un nouveau composant (une nouvelle classe) quand itemId change (et pas une classe qui change d'itemId)
+        // cela permet d'avoir un état frais lorsque l'on change d'item
+        // par exemple, s'il y a des onglets dans l'itemView, on n'affiche pas l'onglet précédent quand on change d'item mais on affiche bien celui par défaut
+        // si ce n'est pas le comportement souhaité, il faut changer de collectionEditorView
+        itemId ? el(itemView(collections, collectionId, itemId, back), {key: 'item'}) : null,
+      ])
+    })
+  }
+}
+
 export var collectionEditor = function (collections, collectionId) {
-  var selected = observable(null)
-  var back = selected.bind(null, null)
-  var listViewArg = collections[collectionId].views.list
-  var listCmp = (typeof listViewArg === 'function' ? listViewArg : listViewDefault)(collections, collectionId, selected)
-  var itemViewArg = collections[collectionId].views.item
-  var itemView = (typeof itemViewArg === 'function') ? itemViewArg : itemViewDefault
-  return observer(function () {
-    var itemId = selected()
-    return el('div', {}, [
-      el('div', {key: 'list', style: {display: itemId ? 'none' : undefined}},
-      // on garde la liste montée pour ne pas relacher le cache de données
-        el(listCmp)
-      ),
-      // on crée un nouveau composant (une nouvelle classe) quand itemId change (et pas une classe qui change d'itemId)
-      // cela permet d'avoir un état frais lorsque l'on change d'item
-      // par exemple, s'il y a des onglets dans l'itemView, on n'affiche pas l'onglet précédent quand on change d'item mais on affiche bien celui par défaut
-      // si ce n'est pas le comportement souhaité, il faut changer de collectionEditorView
-      itemId ? el(itemView(collections, collectionId, itemId, back), {key: 'item'}) : null,
-    ])
-  })
+  return configureCollectionEditor(collections[collectionId].views)(collections, collectionId)
 }
 
 var collectionsList = function (collections, select) {

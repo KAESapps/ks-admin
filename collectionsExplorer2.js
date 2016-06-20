@@ -1,17 +1,15 @@
 import tabs from './layout/list/tabs'
 import { observable } from 'mobservable'
-import { observer } from 'mobservable-react'
-import { createElement as el } from 'react'
 import isFunction from 'lodash/isFunction'
 import keys from 'lodash/keys'
 import create from 'lodash/create'
 import { collectionEditor } from './collectionsExplorer'
 
-const masterDetail = function({ views, defaultActive }) {
+const masterDetail = function({ viewOrder, views = {}, defaultActive }) {
   return function(context) {
     var selected = observable(defaultActive)
 
-    const getItems = () => keys(context.collections)
+    const getItems = () => (viewOrder || keys(context.collections))
     const getItemLabel = (id) => {
       const label = context.collections[id].label
       return typeof label === 'function' ? label(context) : label
