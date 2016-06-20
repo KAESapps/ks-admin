@@ -43,7 +43,7 @@ export default function ({view, filters}) {
             el(Icon, { className: 'dropdown' }),
             "Filtrer la liste"
           ),
-          el('form', {className: "content form-horizontal"}, filters.map((f, i) => {
+          el('div', {className: "content form-horizontal"}, filters.map((f, i) => {
             if (typeof f.view === 'function') {
               return el(filterCmps[i])
             }
