@@ -3,7 +3,6 @@ const el = React.createElement
 import create from 'lodash/create'
 import { observable} from 'mobservable'
 import { observer } from 'mobservable-react'
-import Input from 'react-bootstrap/lib/Input'
 import Accordion from 'react-semantify/lib/modules/accordion'
 import Icon from 'react-semantify/lib/elements/icon'
 import filteredCollection from '../collections/dynamicFiltered'
@@ -18,19 +17,27 @@ export default function ({view, filters}) {
   return function (collections, collection, $itemId) {
     var model = typeof collection === 'string' ? collections[collection].model : collection
     const collectionId = collection.name || collection
-    var filterValues = filters.map(f => observable(f.default != null ? f.default : ''))
-    var filterCmps = filters.map((f, i) => {
+
+    var defaultFilterValue = {}
+    filters.forEach(f => {
+      if (f.path) {
+        defaultFilterValue[f.path] = f.default || ''
+      }
+    })
+    const filtersState = observable(defaultFilterValue)
+    
+    var filterCmps = filters.map((f) => {
       if (typeof f.view === 'function') {
-        return f.view(collections, collection, filterValues, i)
+        return f.view(collections, collection, filtersState)
       }
     })
 
-    var virtualCollectionId = collectionId+'/'+Date.now()
+    var virtualCollectionId = collectionId + '/' + Date.now()
     var virtualCollection = {
       model: filteredCollection(model, () => {
-        var filter = {}
-        filters.forEach(appendFilter.bind(null, filter, filterValues))
-        return filter
+        var queryFilter = {}
+        filters.forEach(appendFilter.bind(null, queryFilter, filtersState))
+        return queryFilter
       }),
     }
     var augmentedCollections = create(collections, {[virtualCollectionId]: virtualCollection})
@@ -43,9 +50,9 @@ export default function ({view, filters}) {
             el(Icon, { className: 'dropdown' }),
             "Filtrer la liste"
           ),
-          el('div', {className: "content form-horizontal"}, filters.map((f, i) => {
+          el('div', {className: "content ui form"}, filters.map((f, i) => {
             if (typeof f.view === 'function') {
-              return el(filterCmps[i])
+              return el(filterCmps[i], { key: i })
             }
             var inputType = getInputType(f)
             var options = null
@@ -53,32 +60,44 @@ export default function ({view, filters}) {
               const allLabel = f.type.allLabel || "Tout"
               options = f.type === 'boolean' ? booleanOptions : [['', allLabel]].concat(f.type.options)
             }
-            return el(Input, {key: i, label: f.label, labelClassName: "col-xs-2", wrapperClassName: "col-xs-10"},
-              el(Input, {type: inputType, value: filterValues[i](), onChange: ev => filterValues[i](ev.target.value)},
+            const filterValue = filtersState[f.path]
+            return el('div', { key: i, className: "inline field" },
+              el('label', {}, f.label),
+              el(inputType === 'select' ? 'select' : 'input', {
+                type: inputType,
+                value: filterValue,
+                onChange: ev => filtersState[f.path] = ev.target.value
+              },
                 options && options.map((o, i) => el('option', {key: i, value: o[0]}, o[1]))
               )
             )
           }))
         ),
+        el('div', { className: 'ui divider' }),
         el(listView)
       )
     })
   }
 }
 
-function appendFilter(filter, filterValues, f, i) {
-  if (typeof f.toQuery === 'function') return f.toQuery(filter, filterValues, f, i)
-  if (filterValues[i]() === '') return
-  if (!f.type || f.type === 'text') return filter[f.path] = f.operator ? {[f.operator]: filterValues[i]()} : {$regex: filterValues[i](), $options: 'i'}
-  if (f.type === 'boolean') return filter[f.path] = (filterValues[i]() === '$true' ? true : {$ne: true})
-  if (f.type.type  === 'select') return filter[f.path] = filterValues[i]()
-  if (f.type === 'date') return filter[f.path] = {[f.operator || '$eq']: filterValues[i]()}
+function appendFilter(queryFilter, filtersState, f) {
+  if (typeof f.toQuery === 'function') return f.toQuery(queryFilter, filtersState, f)
+  
+  if (!f.path) return
+
+  const filterValue = filtersState[f.path]
+  if (filterValue === '') return
+
+  if (!f.type || f.type === 'text') return queryFilter[f.path] = f.operator ? {[f.operator]: filterValue} : {$regex: filterValue, $options: 'i'}
+  if (f.type === 'boolean') return queryFilter[f.path] = (filterValue === '$true' ? true : {$ne: true})
+  if (f.type.type  === 'select') return queryFilter[f.path] = filterValue
+  if (f.type === 'date') return queryFilter[f.path] = {[f.operator || '$eq']: filterValue}
   if (f.type === 'json') {
     try {
-      var val = JSON.parse(filterValues[i]())
-      return filter[f.path] = {[f.operator]: val}
+      var val = JSON.parse(filterValue)
+      return queryFilter[f.path] = {[f.operator]: val}
     } catch (err) {
-      return filter
+      return queryFilter
     }
   }
 }
@@ -94,5 +113,4 @@ function getInputType(f) {
 /*TODO:
 - permettre d'ajouter/enlever explicitement les filtres (plutôt que par la valeur '' ou null)
 - permettre de choisir d'avoir plusieurs options (plutôt que juste une valeur par filtre) ex: permettre à l'utilisateur de choisir le comparateur ou les options de regex
-- permettre de customiser l'action du filtre sur la requête
 */
