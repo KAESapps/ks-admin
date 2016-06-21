@@ -72,6 +72,7 @@ export default function (arg) {
 
   var model = {
     name: arg.serviceName,
+    isReactive: true,
     get: function (itemId) {
       var key = 'item::'+itemId
       if (! (key in itemsCache)) {
