@@ -11,7 +11,7 @@ const itemPicker = function({collection, labelPath, onChange}){
   var nxt = () => $skip($skip()+10)
 
   return observer(function({value}){
-    var results = collection.query({$sort: {[labelPath]: 1}, $limit: $skip()+10})
+    var results = collection.query({$sort: {[labelPath]: 1}, $limit: 10, $skip: $skip()})
 
     return el('div', {
         className: 'ui vertical menu',
@@ -23,7 +23,7 @@ const itemPicker = function({collection, labelPath, onChange}){
       },
       results.loading ? el('span', { className: 'item' }, 'searching...') : null,
       //el('input', {className: 'item', value: $srch(), onChange: ev => $srch(ev.target.value)}),
-      results.value.slice($skip(), 10).map(optionId => {
+      results.value.map(optionId => {
         var optionLabel = collection.get(optionId).loaded ? get(collection.get(optionId).value, labelPath) : '...'
         return el('a', { key: optionId, className: 'item', onClick: () => onChange(optionId) }, optionLabel)
       }),
