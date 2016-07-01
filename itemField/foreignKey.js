@@ -8,9 +8,9 @@ import asText from './text'
 export default function (arg) {
   var relatedCollection = arg.collection
   var labelField = arg.labelField || arg.path // TODO: deprecate use of 'labelField'
-  return function (collections, collectionId, itemId, fieldArg) {
+  return function (collections, collection, itemId, fieldArg) {
     var fieldId = arg.fkPath || fieldArg.path
-    var model = collections[collectionId].model
+    var model = typeof collection === 'string' ? collections[collection].model : collection
 
     return observer(function () {
       var item = model.get(itemId)
