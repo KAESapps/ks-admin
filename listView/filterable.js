@@ -13,7 +13,7 @@ const booleanOptions = [
   ['$false', "non"],
 ]
 
-export default function ({view, filters}) {
+export default function ({view, filters, collapsable=true}) {
   return function (collections, collection, $itemId) {
     var model = typeof collection === 'string' ? collections[collection].model : collection
     const collectionId = collection.name || collection
@@ -25,10 +25,10 @@ export default function ({view, filters}) {
       }
     })
     const filtersState = observable(defaultFilterValue)
-    
+
     var filterCmps = filters.map((f) => {
       if (typeof f.view === 'function') {
-        return f.view(collections, collection, filtersState)
+        return f.view(collections, collection, filtersState, f)
       }
     })
 
@@ -44,35 +44,46 @@ export default function ({view, filters}) {
     var listView = view(augmentedCollections, virtualCollectionId, $itemId)
 
     return observer(function () {
-      return el('div', null,
-        el(Accordion, { init: true },
+      let filterView = el('div', {className: "content ui form"}, filters.map((f, i) => {
+        let widget
+        if (typeof f.view === 'function') {
+          widget = el(filterCmps[i], { key: i })
+        } else {
+          var inputType = getInputType(f)
+          var options = null
+          if (inputType === 'select') {
+            const allLabel = f.type.allLabel || "Tout"
+            options = f.type === 'boolean' ? booleanOptions : [['', allLabel]].concat(f.type.options)
+          }
+          const filterValue = filtersState[f.path]
+
+          widget = el(inputType === 'select' ? 'select' : 'input', {
+            type: inputType,
+            value: filterValue,
+            onChange: ev => filtersState[f.path] = ev.target.value
+          },
+            options && options.map((o, i) => el('option', {key: i, value: o[0]}, o[1]))
+          )
+        }
+
+        return el('div', { key: i, className: "inline field" },
+          el('label', {}, f.label),
+          widget
+        )
+      }))
+
+      if (collapsable) {
+        filterView = el(Accordion, { init: true },
           el('div', { className: 'title' },
             el(Icon, { className: 'dropdown' }),
             "Filtrer la liste"
           ),
-          el('div', {className: "content ui form"}, filters.map((f, i) => {
-            if (typeof f.view === 'function') {
-              return el(filterCmps[i], { key: i })
-            }
-            var inputType = getInputType(f)
-            var options = null
-            if (inputType === 'select') {
-              const allLabel = f.type.allLabel || "Tout"
-              options = f.type === 'boolean' ? booleanOptions : [['', allLabel]].concat(f.type.options)
-            }
-            const filterValue = filtersState[f.path]
-            return el('div', { key: i, className: "inline field" },
-              el('label', {}, f.label),
-              el(inputType === 'select' ? 'select' : 'input', {
-                type: inputType,
-                value: filterValue,
-                onChange: ev => filtersState[f.path] = ev.target.value
-              },
-                options && options.map((o, i) => el('option', {key: i, value: o[0]}, o[1]))
-              )
-            )
-          }))
-        ),
+          filterView
+        )
+      }
+
+      return el('div', null,
+        filterView,
         el('div', { className: 'ui divider' }),
         el(listView)
       )
@@ -82,7 +93,7 @@ export default function ({view, filters}) {
 
 function appendFilter(queryFilter, filtersState, f) {
   if (typeof f.toQuery === 'function') return f.toQuery(queryFilter, filtersState, f)
-  
+
   if (!f.path) return
 
   const filterValue = filtersState[f.path]
