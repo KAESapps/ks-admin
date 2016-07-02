@@ -37,7 +37,7 @@ var subCollection = function (model, itemId, fieldPath) {
       var subItemId = cuid.slug()
       data._id = subItemId
       var patch = mapKeys(data, (value, key) => [fieldPath, subItemId, key].join('.'))
-      return model.patch(itemId, patch)
+      return model.patch(itemId, patch).then(() => subItemId)
     },
     patch: function (subItemId, patch) {
       var patch = mapKeys(patch, (value, key) => [fieldPath, subItemId, key].join('.'))
