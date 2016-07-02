@@ -195,9 +195,9 @@ const listItemViewWithDefaults = function(arg) {
 
       var headerValue = loaded ?
         headerParts.map((part, i) => {
-          return el('span', { style: {'marginRight': '1ex' }}, (typeof part === 'string') ?
+          return el('span', { style: {'marginRight': '1ex' }, key: i}, (typeof part === 'string') ?
             get(item.value, part) :
-            el(part, { key: i, itemId: itemId })
+            el(part, {itemId: itemId })
           )
         }) :
         itemId
@@ -217,7 +217,8 @@ const listItemViewWithDefaults = function(arg) {
         }),
       },
         el('div', { className: 'ui medium header', style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, headerValue),
-        children)
+        children
+      )
     })
   }
 }
