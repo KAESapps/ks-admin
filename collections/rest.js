@@ -175,14 +175,13 @@ export default function (arg) {
       } else {
         var requestArgs = actionParams.requestArgs.apply(null, arguments)
       }
-      // on retourne la réponse à la commande, mais après que le cache ait été rafraichit
-      var resp = request(requestArgs).entity()
-      return resp.then(refreshCache).catch(err => {
-        console.error(actionName, url, err)
-        throw err
-      }).then(function () {
-        return resp.then(actionParams.transformResponse)
+      // on retourne la réponse à la commande immédiatement
+      var resp = request(requestArgs).entity().then(actionParams.transformResponse)
+      // et on en profite pour rafraichir le cache de données au cas où mais sans attendre
+      resp.then(refreshCache).catch(err => {
+        console.error('error refreshing cache after action', actionName, url, err)
       })
+      return resp
     }
   })
 
