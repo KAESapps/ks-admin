@@ -19,7 +19,7 @@ export var fieldEditor = function(collections, collectionId, itemId, $patch, opt
     var value = partEditing ? $patch.get(path) : get(itemValue, path)
 
     if (typeof type === 'function') return el(type, {value, onChange})
-    return el('input', {
+    return el(type === 'textarea' ? 'textarea' : 'input', {
       className: 'ui input',
       type: type,
       // bsStyle: partEditing ? "success" : null,
