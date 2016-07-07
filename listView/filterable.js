@@ -6,6 +6,8 @@ import { observer } from 'mobservable-react'
 import Accordion from 'react-semantify/lib/modules/accordion'
 import Icon from 'react-semantify/lib/elements/icon'
 import filteredCollection from '../collections/dynamicFiltered'
+import defaults from 'lodash/defaults'
+import identity from 'lodash/identity'
 
 const booleanOptions = [
   ['', "tout"],
@@ -96,8 +98,15 @@ function appendFilter(queryFilter, filtersState, f) {
 
   if (!f.path) return
 
-  const filterValue = filtersState[f.path]
+  f = defaults(f, {
+    mapValue: identity,
+    type: 'text',
+  })
+
+  let filterValue = filtersState[f.path]
   if (filterValue === '') return
+
+  filterValue = f.mapValue(filterValue)
 
   if (!f.type || f.type === 'text') return queryFilter[f.path] = f.operator ? {[f.operator]: filterValue} : {$regex: filterValue, $options: 'i'}
   if (f.type === 'boolean') return queryFilter[f.path] = (filterValue === '$true' ? true : {$ne: true})
