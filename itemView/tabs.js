@@ -16,9 +16,12 @@ export default function (tabs) {
         el('div', { className: 'four wide column' },
           el('div', { className: 'ui vertical fluid tabular menu red'}, tabs.map((tab, index) =>
             el('a', {
-              key: index,
-              className: 'item ' + (activeTab === index ? 'active' : ''),
-              onClick: $activeTab.bind(null, index)}, tab.label)
+                key: index,
+                className: 'item ' + (activeTab === index ? 'active' : ''),
+                onClick: $activeTab.bind(null, index),
+              },
+              (typeof tab.label === 'function') ? el(tab.label(collections, collectionId, itemId)) : tab.label
+            )
           ))
         ),
         el('div', { className: 'twelve wide column' },
