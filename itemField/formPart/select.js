@@ -1,8 +1,8 @@
 import React from 'react'
 const el = React.createElement
 
-const selectInput = function ({ options, multiple = false }) {
-  if (!multiple) options = [['$null', ""]].concat(options)
+export const selectInput = function ({ options, multiple = false, nullLabel="" }) {
+  if (!multiple) options = [['$null', nullLabel]].concat(options)
   return function ({ value, onChange }) {
     return el('select', {
       multiple,
@@ -33,7 +33,7 @@ function normalizeMultiValue(value) {
   return Array.isArray(value) ? value: [value]
 }
 function normalizeMonoValue(value) {
-  return !value ? '$null' : value
+  return (value === undefined) ? '$null' : value
 }
 
 function normalizeEvent(ev, multiple) {
