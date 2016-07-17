@@ -127,7 +127,7 @@ export const itemViewWithDefaults = function(arg = {}) {
 
       var item = model.get(itemId)
       var itemLabel = itemId
-      if (item.loaded && itemViewArg.label) itemLabel = (itemViewArg.label === 'function') ? itemViewArg(item.value) : get(item.value, itemViewArg.label)
+      if (item.loaded && itemViewArg.label) itemLabel = (typeof itemViewArg.label === 'function') ? itemViewArg.label(item.value) : get(item.value, itemViewArg.label)
       return el('div', {},
         el('div', { className: 'ui inverted menu' },
           el('a', { className: 'item', onClick: back },

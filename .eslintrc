@@ -1,12 +1,10 @@
 {
   "env": {
     "browser": true,
-    "node": true,
-    "es6": true,
+    "es6": true
   },
-  "ecmaFeatures": {
-    "modules": true,
-    "jsx": true
+  "parserOptions": {
+    "sourceType": "module"
   },
   "rules": {
     "no-undef": 2,
@@ -16,15 +14,6 @@
     "no-mixed-spaces-and-tabs": 1,
     "key-spacing": 1,
     "no-shadow": 1,
-    "no-bitwise": 1,
-
-    "react/jsx-uses-react": 1,
-    "react/react-in-jsx-scope": 1
-  },
-  "globals": {
-      "google": false
-  },
-  "plugins": [
-    "react"
-  ]
+    "no-bitwise": 1
+  }
 }
