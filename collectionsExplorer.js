@@ -28,7 +28,7 @@ export var fieldValueViewDefault = function (collections, collectionId, itemId, 
       return el('div', {
         className: 'ui action input',
       },
-        el('input', {
+        el(fieldType === 'textarea' ? 'textarea' : 'input', {
           type: fieldType,
           value: $inputValue(),
           onChange: ev => $inputValue(normalizeEvent(ev, fieldType)),
@@ -49,7 +49,7 @@ export var fieldValueViewDefault = function (collections, collectionId, itemId, 
     return el('div', {
       className: 'ui action input',
     },
-      el('input', {
+      el(fieldType === 'textarea' ? 'textarea' : 'input', {
         type: fieldType,
         value: fieldValue || "",
         onChange: edit,
