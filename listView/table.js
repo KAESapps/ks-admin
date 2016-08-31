@@ -56,6 +56,7 @@ export default function ({fields, pageSize, sort, selectable }) {
                 key: id,
                 onClick: () => selectable && $itemId(id),
                 style: { cursor: selectable ? 'pointer' : null },
+                className: $itemId() === id ? 'active' : '',
               },
                 selectable && el('td', null,
                   el(Icon, {className: 'chevron circle right', style: { color: 'gray' } })
