@@ -1,11 +1,11 @@
 import React from 'react'
 const el = React.createElement
 import create from 'lodash/create'
-import { observable} from 'mobservable'
+import { observable, observe } from 'mobservable'
 import { observer } from 'mobservable-react'
 import Accordion from 'react-semantify/lib/modules/accordion'
 import Icon from 'react-semantify/lib/elements/icon'
-import filteredCollection from '../collections/dynamicFiltered'
+import filteredCollection from '../collections/filtered'
 import defaults from 'lodash/defaults'
 import identity from 'lodash/identity'
 
@@ -15,7 +15,7 @@ const booleanOptions = [
   ['$false', "non"],
 ]
 
-export default function ({view, filters, collapsable=true}) {
+export default function ({ view, filters, collapsable=true, uniqueViewInstance=false }) {
   return function (collections, collection, $itemId) {
     var model = typeof collection === 'string' ? collections[collection].model : collection
     const collectionId = collection.name || collection
@@ -28,6 +28,11 @@ export default function ({view, filters, collapsable=true}) {
     })
     const filtersState = observable(defaultFilterValue)
 
+    // reset selected item
+    // TODO: pass a setFilter function to filter inputs instead of an observable object (filtersState)
+    // a make this call in that function instead of using observe()
+    observe(filtersState, () => $itemId(null))
+
     var filterCmps = filters.map((f) => {
       if (typeof f.view === 'function') {
         return f.view(collections, collection, filtersState, f)
@@ -35,17 +40,27 @@ export default function ({view, filters, collapsable=true}) {
     })
 
     var virtualCollectionId = collectionId + '/' + Date.now()
-    var virtualCollection = {
-      model: filteredCollection(model, () => {
-        var queryFilter = {}
-        filters.forEach(appendFilter.bind(null, queryFilter, filtersState))
-        return queryFilter
-      }),
+    let listView
+
+    const getFilter = function() {
+      var filter = {}
+      filters.forEach(appendFilter.bind(null, filter, filtersState))
+      return filter
     }
-    var augmentedCollections = create(collections, {[virtualCollectionId]: virtualCollection})
-    var listView = view(augmentedCollections, virtualCollectionId, $itemId)
+
+    if (uniqueViewInstance) {
+      listView = view(collections, collection, $itemId, getFilter)
+    }
 
     return observer(function () {
+      if (!uniqueViewInstance) {
+        var virtualCollection = {
+          model: filteredCollection(model, getFilter()),
+        }
+        var augmentedCollections = create(collections, {[virtualCollectionId]: virtualCollection})
+        listView = view(augmentedCollections, virtualCollectionId, $itemId)
+      }
+
       let filterView = el('div', {className: "content ui form"}, filters.map((f, i) => {
         let widget
         if (typeof f.view === 'function') {
@@ -62,7 +77,7 @@ export default function ({view, filters, collapsable=true}) {
           widget = el(inputType === 'select' ? 'select' : 'input', {
             type: inputType,
             value: filterValue,
-            onChange: ev => filtersState[f.path] = ev.target.value
+            onChange: ev => filtersState[f.path] = ev.target.value,
           },
             options && options.map((o, i) => el('option', {key: i, value: o[0]}, o[1]))
           )
