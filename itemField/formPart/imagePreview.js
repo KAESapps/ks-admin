@@ -1,8 +1,4 @@
 import { view } from '../imagePreview'
+import readOnly from './readOnly'
 
-export default function(collections, collectionId, itemId, $patch, options) {
-  var path = options.path
-  var model = collections[collectionId].model
-
-  return view({ getValue: () => $patch.get(path) || model.get(itemId).value[path] })
-}
+export default readOnly(view)
