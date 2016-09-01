@@ -2,6 +2,8 @@ import { createElement as el } from 'react'
 import { observable } from 'mobservable'
 import { observer } from 'mobservable-react'
 
+import { Box } from '../layout/flex'
+
 import { itemViewWithDefaults, listViewWithDefaults } from '../collectionsExplorer'
 
 export default function(args = {}) {
@@ -32,10 +34,10 @@ export default function(args = {}) {
 
     return observer(function () {
       var itemId = getActive()
-      return el('div', { className: 'ui equal width grid divided' },
-        el('div', {
-          className: 'four wide column',
+      return el(Box, { style: { flexDirection: 'row' } },
+        el(Box, {
           style: {
+            flex: 1,
             overflow: 'auto',
           },
         },
@@ -46,8 +48,11 @@ export default function(args = {}) {
         // cela permet d'avoir un état frais lorsque l'on change d'item
         // par exemple, s'il y a des onglets dans l'itemView, on n'affiche pas l'onglet précédent quand on change d'item mais on affiche bien celui par défaut
         // si ce n'est pas le comportement souhaité, il faut changer de collectionEditorView
-        el('div', {
-          className: 'column',
+        el(Box, {
+          style: {
+            flex: 3,
+            overflow: 'auto',
+          },
         },
           el(itemViewCtr(collections, collection, itemId, back, getSetActive))
         )

@@ -3,6 +3,7 @@ import React from 'react'
 const el = React.createElement
 import { observable, transaction } from 'mobservable'
 import { observer } from 'mobservable-react'
+import { Box } from './layout/flex'
 
 import Command from './reactiveCollection/Command'
 
@@ -273,7 +274,7 @@ export const listViewWithDefaults = function(arg) {
     const addLabel = args.addLabel || "Ajouter un élément"
 
     return observer(function () {
-      return el('div', null,
+      return el(Box, {},
         !preventAdd && el('div', { className: 'ui inverted menu' },
           el('div', { className: 'item' },
               el('div', { className: 'ui primary button', onClick: add },
@@ -282,7 +283,9 @@ export const listViewWithDefaults = function(arg) {
               )
           )
         ),
-        el(innerView)
+        el(Box, {},
+          el(innerView)
+        )
       )
     })
   }

@@ -4,6 +4,7 @@ import { observable} from 'mobservable'
 import { observer } from 'mobservable-react'
 
 import {innerItemViewDefault} from '../collectionsExplorer'
+import { Box, margin } from '../layout/flex'
 
 // c'est purement un décorateur graphique pour faire un multi-itemView... aucune logique sur les données
 export default function (tabs) {
@@ -12,8 +13,8 @@ export default function (tabs) {
     return observer(function () {
       var activeTab = $activeTab()
       var itemViewArg = tabs[activeTab].view
-      return el('div', { className: 'ui grid' },
-        el('div', { className: 'four wide column' },
+      return el(Box, { style: { flexDirection: 'row' } },
+        el(Box, { style: { flex: 1 }},
           el('div', { className: 'ui vertical fluid tabular menu red'}, tabs.map((tab, index) =>
             el('a', {
                 key: index,
@@ -24,8 +25,8 @@ export default function (tabs) {
             )
           ))
         ),
-        el('div', { className: 'twelve wide column' },
-          el(innerItemViewDefault(collections, collectionId, itemId, itemViewArg))
+        el(Box, { style: { flex: 3, overflow: 'auto' } },
+          el(margin(innerItemViewDefault)(collections, collectionId, itemId, itemViewArg))
         )
       )
     })
