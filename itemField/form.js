@@ -45,6 +45,15 @@ export var labeledPart = function(collections, collectionId, itemId, $patch, opt
   }
 }
 
+export const partFactory = function(collections, collectionId, itemId, $patch) {
+  return function(part) {
+    if (typeof part === 'function') return part(collections, collectionId, itemId, $patch)
+    if (typeof part === 'string') part = {path: part, label: part, type: 'text'}
+    if (Array.isArray(part)) part = {path: part[0], label: part[1], type: 'text'}
+    return labeledPart(collections, collectionId, itemId, $patch, part)
+  }
+}
+
 export default function (parts) {
   return function (collections, collectionId, itemId) {
     var model = collections[collectionId].model
@@ -52,12 +61,7 @@ export default function (parts) {
     var save = new Command(() => {
       return model.patch(itemId, $patch.toJs()).then(() => $patch.clear())
     })
-    var cmps = parts.map(part => {
-      if (typeof part === 'function') return part(collections, collectionId, itemId, $patch)
-      if (typeof part === 'string') part = {path: part, label: part, type: 'text'}
-      if (Array.isArray(part)) part = {path: part[0], label: part[1], type: 'text'}
-      return labeledPart(collections, collectionId, itemId, $patch, part)
-    })
+    var cmps = parts.map(partFactory(collections, collectionId, itemId, $patch))
 
     return observer(function () {
       var editing = $patch.keys().length > 0
