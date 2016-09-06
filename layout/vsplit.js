@@ -9,10 +9,10 @@ export default ({ topView: makeTopView, bottomView: makeBottomView }) => {
     const bottomView = makeBottomView.apply(makeBottomView, arguments)
     return observer(function() {
       return el(Box, { },
-        el(Box, { style: { overflow: 'auto' } },
+        el(Box, { style: { overflow: 'auto', flexShrink: 0 } },
           el(topView)
         ),
-        el(Box, { style: { overflow: 'auto' } },
+        el(Box, { style: { overflow: 'auto', flexShrink: 0 } },
           el(bottomView)
         )
       )
