@@ -146,11 +146,15 @@ export default function (initialValues) {
         if (keyAccessor) keyAccessor(null)
         // trigger filter accessors if concerned
         filterAccessors.cache.forEach((accessor) => {
-          const ids = accessor().value
+          const ids = accessor()
           const indexOfKey = ids.indexOf(key)
           const hasKey = indexOfKey >= 0
           // remove key if needed
-          if (hasKey) accessor(ids.slice().splice(indexOfKey, 1))
+          if (hasKey) {
+            const newIds = ids.slice()
+            newIds.splice(indexOfKey, 1)
+            accessor(newIds)
+          }
         })
         observer && observer(values)
         return true
