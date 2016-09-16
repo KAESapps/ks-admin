@@ -87,7 +87,7 @@ export default function (initialValues) {
     },
     add: function (arg) {
       return Promise.resolve().then(()=> {
-        const key = shortid.generate()
+        const key = arg.id || shortid.generate()
         const value = assign({ createdAt: new Date().toISOString() }, arg)
         // save value
         values[key] = value
