@@ -12,11 +12,4 @@ export const Box = (props) => {
   }, props.children)
 }
 
-export const margin = (makeView) => {
-  return function() {
-    const view = makeView.apply(makeView, arguments)
-    return function() {
-      return el('div', { style: { padding: '1em' } }, el(view))
-    }
-  }
-}
+export default Box

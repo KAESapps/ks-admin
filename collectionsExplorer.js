@@ -129,7 +129,7 @@ export const itemViewWithDefaults = function(arg = {}) {
       var item = model.get(itemId)
       var itemLabel = itemId
       if (item.loaded && itemViewArg.label) itemLabel = (typeof itemViewArg.label === 'function') ? itemViewArg.label(item.value) : get(item.value, itemViewArg.label)
-      return el('div', {},
+      return el(Box, {},
         el('div', { className: 'ui inverted menu' },
           el('a', { className: 'item', onClick: back },
             el('i', { className: 'angle left icon' }),
@@ -303,8 +303,8 @@ export const configureCollectionEditor = function(arg) {
     var itemView = (typeof itemViewArg === 'function') ? itemViewArg : itemViewDefault
     return observer(function () {
       var itemId = selected()
-      return el('div', {}, [
-        el('div', {key: 'list', style: {display: itemId ? 'none' : undefined}},
+      return el(Box, {}, [
+        el(Box, {key: 'list', style: {display: itemId ? 'none' : undefined}},
         // on garde la liste montée pour ne pas relacher le cache de données
           el(listCmp)
         ),

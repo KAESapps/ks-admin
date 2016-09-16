@@ -4,7 +4,8 @@ import { observable} from 'mobservable'
 import { observer } from 'mobservable-react'
 
 import {innerItemViewDefault} from '../collectionsExplorer'
-import { Box, margin } from '../layout/flex'
+import Box from '../layout/flex'
+import margin from '../layout/margin'
 
 // c'est purement un décorateur graphique pour faire un multi-itemView... aucune logique sur les données
 export default function (tabs) {
