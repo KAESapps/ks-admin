@@ -1,7 +1,7 @@
 import React from 'react'
 const el = React.createElement
 import { observer } from 'mobservable-react'
-import assign from 'lodash/assign'
+import {assign, find, mapValues} from 'lodash'
 
 import Input from 'react-bootstrap/lib/Input'
 
@@ -17,7 +17,7 @@ export default function (arg) {
     return observer(function () {
       var editing = $patch.has(path)
       var itemFieldValue = model.get(itemId).value[path] || emptySet(format)
-      var value = editing ? $patch.get(path) : itemFieldValue
+      var value = editing ? $patch.get(path) : restrictToOptions(itemFieldValue, options, format)
 
       return el('div', null, options.map((o,i) =>
         el(Input, {
@@ -59,4 +59,14 @@ function updateArraySet(set, option, checked) {
 
 function emptySet(format) {
   return format === 'object' ? {} : []
+}
+
+function restrictToOptions(set, options, format) {
+  return (format === 'object' ? restrictToOptionsObject : restrictToOptionsArray)(set, options)
+}
+function restrictToOptionsObject(set, options) {
+  return mapValues(set, (v, k) => find(options, o => o[0] === k))
+}
+function restrictToOptionsArray(set, options) {
+  return set.filter(k => find(options, o => o[0] === k))
 }
