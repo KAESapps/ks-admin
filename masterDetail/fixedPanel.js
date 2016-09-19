@@ -54,7 +54,7 @@ export default function(args = {}) {
             overflow: 'auto',
           },
         },
-          el(itemViewCtr(collections, collection, itemId, back, getSetActive))
+          itemId ? el(itemViewCtr(collections, collection, itemId, back, getSetActive)) : null
         )
       )
     })
