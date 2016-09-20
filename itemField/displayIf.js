@@ -9,7 +9,7 @@ export default function ({view, condition}) {
 
   return function (collections, collectionId, itemId) {
     var model = collections[collectionId].model
-    var cmp = (typeof view === 'function' ? view : fieldViewDefault)(collections, collectionId, itemId, view)
+    var cmp = (typeof view === 'function' ? view : fieldViewDefault(view))(collections, collectionId, itemId)
 
     return observer(function () {
       var fieldValue = get(model.get(itemId).value, conditionPath)

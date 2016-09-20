@@ -72,32 +72,34 @@ export var convertFieldArg = function(fieldArg) {
   return fieldArg
 }
 
-export var fieldViewDefault = function (collections, collectionId, itemId, fieldArg) {
-  var fieldArg = convertFieldArg(fieldArg)
-  var fieldValueView = (typeof fieldArg.type === 'function' ?
-    fieldArg.type :
-    fieldValueViewDefault
-  )(collections, collectionId, itemId, fieldArg)
+export var fieldViewDefault = function (fieldArg) {
+  fieldArg = convertFieldArg(fieldArg)
+  return function(collections, collectionId, itemId) {
+    var fieldValueView = (typeof fieldArg.type === 'function' ?
+      fieldArg.type :
+      fieldValueViewDefault
+    )(collections, collectionId, itemId, fieldArg)
 
-  return function () {
-    return el('div', {
-      className: 'ui form',
-    },
-      el ('div', { className: 'field'},
-        el('label', { className: '' }, fieldArg.label),
-        el(fieldValueView),
-        el('div', { className: 'help' }, fieldArg.tip)
+    return function () {
+      return el('div', {
+        className: 'ui form',
+      },
+        el ('div', { className: 'field'},
+          el('label', { className: '' }, fieldArg.label),
+          el(fieldValueView),
+          el('div', { className: 'help' }, fieldArg.tip)
+        )
       )
-    )
+    }
   }
 }
 
 export var innerItemViewDefault = function (collections, collectionId, itemId, arg) {
   if (typeof arg === 'function') return arg(collections, collectionId, itemId)
   var fields = arg.map((field) =>
-    typeof field === 'function' ?
-      field(collections, collectionId, itemId) :
-      fieldViewDefault(collections, collectionId, itemId, field)
+    (typeof field === 'function' ?
+      field : fieldViewDefault(field)
+    )(collections, collectionId, itemId)
   )
   return function () {
     return el('div', {}, fields.map((field, index) =>
