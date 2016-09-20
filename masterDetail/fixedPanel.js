@@ -31,6 +31,10 @@ export default function(args = {}) {
 
     var back = setActive.bind(null, null)
     var listCmp = listViewCtr(collections, collection, getSetActive)
+    var noItemSelectedCmp = null
+    if (typeof args.noItemSelected === 'function') {
+      noItemSelectedCmp = el(args.noItemSelected(collections, collection, setActive))
+    }
 
     return observer(function () {
       var itemId = getActive()
@@ -54,7 +58,7 @@ export default function(args = {}) {
             overflow: 'auto',
           },
         },
-          itemId ? el(itemViewCtr(collections, collection, itemId, back, getSetActive)) : null
+          itemId ? el(itemViewCtr(collections, collection, itemId, back, getSetActive)) : noItemSelectedCmp
         )
       )
     })
