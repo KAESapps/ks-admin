@@ -3,6 +3,28 @@ import {transaction} from 'mobservable'
 import identity from 'lodash/identity'
 import assign from 'lodash/assign'
 
+function eventRegistry() {
+  let cbs = []
+  return {
+    on: function(emitter, event, cb) {
+      cbs.push({ emitter, event, cb })
+      return emitter.on(event, cb)
+    },
+    clear: function() {
+      cbs.forEach(({ emitter, event, cb }) => {
+        if (emitter.off) {
+          emitter.off(event, cb)
+        } else if (emitter.removeListener) {
+          emitter.removeListener(event, cb)
+        } else {
+          throw "can't find a method for cancelling listener"
+        }
+      })
+      cbs = []
+    },
+  }
+}
+
 export default function (arg) {
   var itemsCache = {}
   var queriesCache = {}
@@ -10,7 +32,9 @@ export default function (arg) {
   var client = arg.fth.service(arg.serviceName)
   var watcher = arg.fth.service(arg.serviceName+'/subscriptions')
 
-  watcher.on('change', function({key, type, value}) {
+  const registerEvents = eventRegistry()
+
+  registerEvents.on(watcher, 'change', function({key, type, value}) {
     console.log('received change for', key, value)
     if (type === 'query') {
       var obs = queriesCache[key]
@@ -53,11 +77,11 @@ export default function (arg) {
     return watcher.remove(key)
   }
 
-  arg.fth.on('disconnect', function () {
+  registerEvents.on(arg.fth, 'disconnect', function () {
     console.log('disconnected', arg.serviceName)
   })
 
-  arg.fth.on('authenticated', function () {
+  registerEvents.on(arg.fth, 'authenticated', function () {
     console.log("reconnected, resubscribing to everything", arg.serviceName)
     Object.keys(queriesCache).forEach(queryKey => {
       var params = JSON.parse(queryKey.split('::')[1])
@@ -102,6 +126,22 @@ export default function (arg) {
       }
       return queriesCache[key].getValue()
     },
+
+    destroy: function() {
+      // unsubscribe to all events
+      registerEvents.clear()
+      if (arg.fth.io.connected) {
+        // unsubscribe to all current requests
+        return Promise.all(
+          Object.keys(queriesCache).map(unwatch).concat(
+            Object.keys(itemsCache).map(unwatch)
+          )
+        )
+      } else {
+        // if connection is broken, no need to unsubscribe requests
+        return Promise.resolve()
+      }
+    },
   }
 
 
@@ -116,13 +156,13 @@ export default function (arg) {
       requestArgs: function (itemId) {
         return ['remove', itemId]
       },
-      transformResponse: identity
+      transformResponse: identity,
     },
     patch: {
       requestArgs: function (itemId, patch) {
         return ['patch', itemId, patch]
       },
-      transformResponse: identity
+      transformResponse: identity,
     },
   }
   if (arg.actions) assign(actions, arg.actions)
