@@ -1,5 +1,6 @@
 import create from 'lodash/create'
 import createEventRegistry from './eventRegistry'
+import { observable } from 'mobservable'
 
 /*
  Augment a feathers client (v2.0.1) with:
@@ -9,10 +10,12 @@ import createEventRegistry from './eventRegistry'
 
 export default function (feathersClient) {
   const eventRegistry = createEventRegistry()
+  const $isAuthenticated = observable(false)
 
   return create(feathersClient, {
+    isAuthenticated: () => $isAuthenticated(),
     authenticate: function(credentials) {
-      if (this.loggedIn) {
+      if ($isAuthenticated()) {
         throw "authenticate() cannot be called twice unless you logout"
       }
       return feathersClient.authenticate(credentials)
@@ -31,7 +34,7 @@ export default function (feathersClient) {
             feathersClient.emit('disconnect')
           })
 
-          this.loggedIn = true
+          $isAuthenticated(true)
           console.log('authenticated', res)
           feathersClient.emit('authenticated')
         })
@@ -40,7 +43,7 @@ export default function (feathersClient) {
       // clear listeners
       eventRegistry.clear()
       feathersClient.logout()
-      this.loggedIn = false
+      $isAuthenticated(false)
       console.log('logout')
       feathersClient.emit('logout')
     },
