@@ -2,28 +2,7 @@ import Atom from '../reactiveCollection/Atom'
 import {transaction} from 'mobservable'
 import identity from 'lodash/identity'
 import assign from 'lodash/assign'
-
-function eventRegistry() {
-  let cbs = []
-  return {
-    on: function(emitter, event, cb) {
-      cbs.push({ emitter, event, cb })
-      return emitter.on(event, cb)
-    },
-    clear: function() {
-      cbs.forEach(({ emitter, event, cb }) => {
-        if (emitter.off) {
-          emitter.off(event, cb)
-        } else if (emitter.removeListener) {
-          emitter.removeListener(event, cb)
-        } else {
-          throw "can't find a method for cancelling listener"
-        }
-      })
-      cbs = []
-    },
-  }
-}
+import createEventRegistry from '../utils/eventRegistry'
 
 export default function (arg) {
   var itemsCache = {}
@@ -32,9 +11,9 @@ export default function (arg) {
   var client = arg.fth.service(arg.serviceName)
   var watcher = arg.fth.service(arg.serviceName+'/subscriptions')
 
-  const registerEvents = eventRegistry()
+  const eventRegistry = createEventRegistry()
 
-  registerEvents.on(watcher, 'change', function({key, type, value}) {
+  eventRegistry.on(watcher, 'change', function({key, type, value}) {
     console.log('received change for', key, value)
     if (type === 'query') {
       var obs = queriesCache[key]
@@ -77,11 +56,11 @@ export default function (arg) {
     return watcher.remove(key)
   }
 
-  registerEvents.on(arg.fth, 'disconnect', function () {
+  eventRegistry.on(arg.fth, 'disconnect', function () {
     console.log('disconnected', arg.serviceName)
   })
 
-  registerEvents.on(arg.fth, 'authenticated', function () {
+  eventRegistry.on(arg.fth, 'authenticated', function () {
     console.log("reconnected, resubscribing to everything", arg.serviceName)
     Object.keys(queriesCache).forEach(queryKey => {
       var params = JSON.parse(queryKey.split('::')[1])
@@ -129,7 +108,7 @@ export default function (arg) {
 
     destroy: function() {
       // unsubscribe to all events
-      registerEvents.clear()
+      eventRegistry.clear()
       if (arg.fth.io.connected) {
         // unsubscribe to all current requests
         return Promise.all(
