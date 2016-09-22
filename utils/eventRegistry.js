@@ -7,10 +7,12 @@ export default function eventRegistry() {
     },
     clear: function() {
       cbs.forEach(({ emitter, event, cb }) => {
-        if (emitter.off) {
-          emitter.off(event, cb)
-        } else if (emitter.removeListener) {
+        // auto-detect listener removing method
+        // TODO: works for our current needs, but we might want to make this more explicit in the future
+        if (emitter.removeListener) {
           emitter.removeListener(event, cb)
+        } else if (emitter.off) {
+          emitter.off(event, cb)
         } else {
           throw "can't find a method for cancelling listener"
         }
