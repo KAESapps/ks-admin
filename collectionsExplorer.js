@@ -12,10 +12,10 @@ function normalizeEvent (ev, type) {
   return ev.target.value
 }
 
-export var fieldValueViewDefault = function (collections, collectionId, itemId, fieldArg) {
+export var fieldValueViewDefault = function (collections, collection, itemId, fieldArg) {
   var fieldId = fieldArg.path
   var fieldType = fieldArg.type || 'text'
-  var model = collections[collectionId].model
+  var model = typeof collection === 'string' ? collections[collection].model : collection
   var $inputValue = observable(null)
   var $editing = observable(false)
   var cancel = $editing.bind(null, false)

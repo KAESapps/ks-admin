@@ -5,15 +5,21 @@ import {get} from 'lodash'
 import {fieldViewDefault} from '../collectionsExplorer'
 
 export default function ({view, condition}) {
-  var conditionPath = condition.path
+  if (typeof(condition) !== 'function') {
+    var conditionPath = condition.path
+    var conditionValue = condition.value
+    condition = function(itemValue) {
+      var fieldValue = get(itemValue, conditionPath)
+      return fieldValue === conditionValue
+    }
+  }
 
-  return function (collections, collectionId, itemId) {
-    var model = collections[collectionId].model
-    var cmp = (typeof view === 'function' ? view : fieldViewDefault(view))(collections, collectionId, itemId)
+  return function (collections, collection, itemId) {
+    var model = typeof collection === 'string' ? collections[collection].model : collection
+    var cmp = (typeof view === 'function' ? view : fieldViewDefault(view))(collections, collection, itemId)
 
     return observer(function () {
-      var fieldValue = get(model.get(itemId).value, conditionPath)
-      if (fieldValue !== condition.value) return null // TODO: better condition evalutation
+      if (!condition(model.get(itemId).value)) return null // TODO: better condition evalutation
       return el(cmp)
     })
   }
