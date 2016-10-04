@@ -80,12 +80,14 @@ export var fieldViewDefault = function (fieldArg) {
       fieldValueViewDefault
     )(collections, collectionId, itemId, fieldArg)
 
+    const labelView = (typeof fieldArg.label === 'function' ? fieldArg.label(collections, collectionId, itemId, fieldArg) : () => el('label', {}, fieldArg.label))
+
     return function () {
       return el('div', {
         className: 'ui form',
       },
         el ('div', { className: 'field'},
-          el('label', { className: '' }, fieldArg.label),
+          el(labelView),
           el(fieldValueView),
           el('div', { className: 'help' }, fieldArg.tip)
         )
