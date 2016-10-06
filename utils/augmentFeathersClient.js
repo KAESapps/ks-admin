@@ -27,6 +27,10 @@ export default function (feathersClient) {
               feathersClient.emit('authenticated')
               console.log('reauthenticated')
             })
+            .catch(err => {
+              feathersClient.emit('notAuthenticated')
+              throw err
+            })
           })
 
           eventRegistry.on(feathersClient.io, 'disconnect', function() {
@@ -38,14 +42,20 @@ export default function (feathersClient) {
           console.log('authenticated', res)
           feathersClient.emit('authenticated')
         })
+      .catch(err => {
+        feathersClient.emit('notAuthenticated')
+        throw err
+      })
     },
     logout: function() {
       // clear listeners
       eventRegistry.clear()
       feathersClient.logout()
       $isAuthenticated(false)
-      console.log('logout')
-      feathersClient.emit('logout')
+      feathersClient.emit('notAuthenticated')
     },
+
+    on: feathersClient.on.bind(feathersClient),
+    emit: feathersClient.emit.bind(feathersClient),
   })
 }
