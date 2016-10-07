@@ -4,6 +4,13 @@ import identity from 'lodash/identity'
 import assign from 'lodash/assign'
 import createEventRegistry from '../utils/eventRegistry'
 
+function hashGet(id) {
+  return 'item::' + id
+}
+function hashQuery(params) {
+  return 'query::'+JSON.stringify(params)
+}
+
 export default function (arg) {
   var itemsCache = {}
   var queriesCache = {}
@@ -27,7 +34,7 @@ export default function (arg) {
       // mais on ne le fait pas dans la même transaction que la query pour permettre aux fonctions de rendu de s'abonner aux items
       transaction(() => {
         value.data.forEach(item => {
-          var itemObs = itemsCache[item.id]
+          var itemObs = itemsCache[hashGet(item.id)]
           if (itemObs) {
             itemObs.setValue({
               loading: false,
@@ -77,7 +84,7 @@ export default function (arg) {
     name: arg.serviceName,
     isReactive: true,
     get: function (itemId) {
-      var key = 'item::'+itemId
+      var key = hashGet(itemId)
       if (! (key in itemsCache)) {
         var item = new Atom({loading: true, loaded: false, value: {}})
         itemsCache[key] = item
@@ -92,7 +99,7 @@ export default function (arg) {
     },
     query: function (params) {
       params = params || {}
-      var key = 'query::'+JSON.stringify(params)
+      var key = hashQuery(params)
       if (! queriesCache[key]) {
         var item = new Atom({loading: true, loaded: false, value: []})
         queriesCache[key] = item
