@@ -35,7 +35,7 @@ export default function (arg) {
       transaction(() => {
         value.data.forEach(item => {
           var itemObs = itemsCache[hashGet(item.id)]
-          if (itemObs) {
+          if (itemObs && itemObs.getValue().loading) {
             itemObs.setValue({
               loading: false,
               loaded: new Date(),

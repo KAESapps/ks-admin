@@ -38,9 +38,9 @@ export default function (feathersClient) {
             feathersClient.emit('disconnect')
           })
 
-          $isAuthenticated(true)
           console.log('authenticated', res)
           feathersClient.emit('authenticated')
+          $isAuthenticated(true)
         })
       .catch(err => {
         feathersClient.emit('notAuthenticated')
