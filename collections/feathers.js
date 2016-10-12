@@ -112,6 +112,15 @@ export default function (arg) {
       }
       return queriesCache[key].getValue()
     },
+    // expose cache for extensibility
+    getItemCache: function(itemId) {
+      var key = hashGet(itemId)
+      return itemsCache[key]
+    },
+    getQueryCache: function(params = {}) {
+      var key = hashQuery(params)
+      return queriesCache[key]
+    },
 
     destroy: function() {
       // unsubscribe to all events
