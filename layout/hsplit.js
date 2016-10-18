@@ -1,5 +1,4 @@
 import { createElement as el } from 'react'
-import { observer } from 'mobservable-react'
 
 import { Box } from './flex'
 
@@ -18,6 +17,6 @@ export default ({ leftView: makeLeftView, rightView: makeRightView }) => {
   return function() {
     const leftView = makeLeftView.apply(makeLeftView, arguments)
     const rightView = makeRightView.apply(makeRightView, arguments)
-    return observer(container({leftView, rightView}))
+    return container({leftView, rightView})
   }
 }
