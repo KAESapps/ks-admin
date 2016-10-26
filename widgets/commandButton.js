@@ -2,7 +2,7 @@ import { createElement as el } from 'react'
 import { observer } from 'mobservable-react'
 
 export default function(command, opts) {
-  const { label, onAction, sizeClass = '', typeClass = '' } = opts
+  const { label, onAction = command.trigger, sizeClass = '', typeClass = '' } = opts
 
   return observer(function() {
     if (command.status() === 'idle') {
