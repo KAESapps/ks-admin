@@ -16,3 +16,7 @@ export default function(format) {
   return asText(toLocaleDate(format))
 }
 
+export const dateTime = asText(toLocaleDate({
+  year: "numeric", month: "numeric", day: "numeric",
+  hour: "numeric", minute: "numeric",
+}))
