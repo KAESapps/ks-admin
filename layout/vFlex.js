@@ -18,6 +18,11 @@ export const layout = args => {
 }
 
 export default args => context => {
-  var children = args.map(([child, props]) => [child(context), props])
+  var children = args.map(child => {
+    if (! Array.isArray(child)) return child(context)
+    let props
+    [child, props] = child
+    return [child(context), props]
+  })
   return layout(children)
 }
