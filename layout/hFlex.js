@@ -1,21 +1,36 @@
 //TODO: mettre en commun h et v
 
 import {createElement as el} from 'react'
+import defaults from 'lodash/defaults'
+
 const defaultProps = {
   weight: 1,
 }
 export const layout = args => {
-  const children = args.map((arg, i) => {
-    let child, props = defaultProps
+  let childrenArg = args, containerProps = {}
+
+  if (!Array.isArray(args)) {
+    ({ children: childrenArg, containerProps } = args)
+  }
+
+  const children = childrenArg.map((arg, i) => {
+    let child, props
     if (Array.isArray(arg)) {
       [child, props] = arg
+      if (typeof props === 'number') props = {weight: props}
     } else {
       child = arg
     }
-    if (typeof props === 'number') props = {weight: props}
-    return el('div', {key: props.id || i, style: {flex: props.weight}}, el(child))
+    props = defaults(props, defaultProps)
+    return el('div', {
+      key: props.id || i,
+      style: defaults({ flex: props.weight }, props.style),
+      className: props.className,
+    }, child && el(child))
   })
-  return () => el('div', {style: {display: 'flex', flexDirection: 'row', flex: 1}}, children)
+  return () => el('div', defaults({
+    style: defaults({ display: 'flex', flexDirection: 'row', flex: 1}, containerProps.style),
+  }, containerProps), children)
 
 }
 
