@@ -11,7 +11,7 @@ export const layout = args => {
       child = arg
     }
     if (typeof props === 'number') props = {weight: props}
-    return el('div', {key: props.id || i, style: {flex: props.weight}}, el(child))
+    return el('div', {key: props.id || i, style: {flex: props.weight || null, display: 'flex'}}, el(child))
   })
   return () => el('div', {style: {display: 'flex', flexDirection: 'column', flex: 1}}, children)
 
