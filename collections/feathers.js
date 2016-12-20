@@ -14,6 +14,7 @@ function hashQuery(params) {
 export default function (arg) {
   var itemsCache = {}
   var queriesCache = {}
+  var unwatchTimeouts = {}
 
   var client = arg.fth.service(arg.serviceName)
   var watcher = arg.fth.service(arg.serviceName+'/subscriptions')
@@ -21,7 +22,7 @@ export default function (arg) {
   const eventRegistry = createEventRegistry()
 
   eventRegistry.on(watcher, 'change', function({key, type, value}) {
-    console.log('received change for', key, value)
+    // console.log('received change for', key, value)
     if (type === 'query') {
       var obs = queriesCache[key]
       if (!obs) return console.warn('received change for a key not present in cache', arg.serviceName, key)
@@ -56,11 +57,33 @@ export default function (arg) {
   })
 
   var watch = function (type, key, params) {
-    console.log('start watching', type, arg.serviceName, params)
+    // console.log('start watching', type, arg.serviceName, params)
     return watcher.create({id: key, type: type, params: params})
   }
   var unwatch = function (key) {
     return watcher.remove(key)
+  }
+
+  var scheduleForUnwatch = (type, key) => () => {
+    const obsCache = type === 'item' ? itemsCache : queriesCache
+    // console.log(key, "scheduled for unwatch")
+    unwatchTimeouts[key] = setTimeout(() => {
+      unwatch(key)
+      delete obsCache[key]
+      delete unwatchTimeouts[key]
+      // console.log('obs disposed', arg.serviceName, key)
+    }, 1000 * 60 * 3)
+  }
+
+  var cancelScheduleForUnwatchIfNecessary = (type, key) => {
+    if (unwatchTimeouts[key]) {
+      // console.log('unwatch schedule canceled', key)
+      clearTimeout(unwatchTimeouts[key])
+      delete unwatchTimeouts[key]
+      const obsCache = type === 'item' ? itemsCache : queriesCache
+      const obs = obsCache[key]
+      obs.onBecomeUnobserved(scheduleForUnwatch(type, key))
+    }
   }
 
   eventRegistry.on(arg.fth, 'disconnect', function () {
@@ -85,14 +108,11 @@ export default function (arg) {
     isReactive: true,
     get: function (itemId) {
       var key = hashGet(itemId)
+      cancelScheduleForUnwatchIfNecessary('item', key)
       if (! (key in itemsCache)) {
         var item = new Atom({loading: true, loaded: false, value: {}})
         itemsCache[key] = item
-        item.onBecomeUnobserved(function () {
-          console.log('item disposed', arg.serviceName, itemId)
-          unwatch(key)
-          delete itemsCache[key];
-        })
+        item.onBecomeUnobserved(scheduleForUnwatch('item', key))
         watch('item', key, itemId)
       }
       return itemsCache[key].getValue()
@@ -100,14 +120,11 @@ export default function (arg) {
     query: function (params) {
       params = params || {}
       var key = hashQuery(params)
+      cancelScheduleForUnwatchIfNecessary('query', key)
       if (! queriesCache[key]) {
         var item = new Atom({loading: true, loaded: false, value: []})
         queriesCache[key] = item
-        item.onBecomeUnobserved(function () {
-          console.log('query disposed', arg.serviceName, params)
-          unwatch(key)
-          delete queriesCache[key]
-        })
+        item.onBecomeUnobserved(scheduleForUnwatch('query', key))
         watch('query', key, params)
       }
       return queriesCache[key].getValue()
