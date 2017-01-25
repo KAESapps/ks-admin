@@ -2,7 +2,7 @@ import get from 'lodash/get'
 import React from 'react'
 const el = React.createElement
 import { observer } from 'mobservable-react'
-import { map} from 'mobservable'
+import { map, asReference } from 'mobservable'
 import Command from '../reactiveCollection/Command'
 
 const preventDefault = ev => ev.preventDefault()
@@ -57,7 +57,7 @@ export const partFactory = function(collections, collectionId, itemId, $patch) {
 export default function (parts) {
   return function (collections, collectionId, itemId) {
     var model = collections[collectionId].model
-    var $patch = map()
+    var $patch = map({}, asReference)
     var save = new Command(() => {
       return model.patch(itemId, $patch.toJs()).then(() => $patch.clear())
     })
