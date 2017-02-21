@@ -200,7 +200,7 @@ const listItemViewWithDefaults = function(arg) {
 
       var headerValue = loaded ?
         headerParts.map((part, i) => {
-          return el('span', { style: {'marginRight': '1ex' }, key: i}, (typeof part === 'string') ?
+          return el('span', { style: (i < headerParts.length - 1) ? {'marginRight': '1ex' } : null, key: i}, (typeof part === 'string') ?
             get(item.value, part) :
             el(part, {itemId: itemId })
           )
