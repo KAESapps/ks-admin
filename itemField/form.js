@@ -5,6 +5,8 @@ import { observer } from 'mobservable-react'
 import { map, asReference } from 'mobservable'
 import Command from '../reactiveCollection/Command'
 
+import debounce from 'lodash/debounce'
+
 const preventDefault = ev => ev.preventDefault()
 
 export var fieldEditor = function(collections, collectionId, itemId, $patch, options) {
@@ -54,7 +56,12 @@ export const partFactory = function(collections, collectionId, itemId, $patch) {
   }
 }
 
-export default function (parts) {
+export default function (opts, parts) {
+  if (arguments.length < 2) {
+    parts = opts
+    opts = { autoSave: false }
+  }
+
   return function (collections, collectionId, itemId) {
     var model = collections[collectionId].model
     var $patch = map({}, asReference)
@@ -63,8 +70,13 @@ export default function (parts) {
     })
     var cmps = parts.map(partFactory(collections, collectionId, itemId, $patch))
 
+    if (opts.autoSave) {
+      $patch.observe(debounce(save.trigger, 500))
+    }
+
     return observer(function () {
       var editing = $patch.keys().length > 0
+
       return el('div', { className: 'ui form'},
         el('form', {onSubmit: preventDefault}, cmps.map((cmp, i) => el(cmp, {key: i}))),
         el('div', { className: 'ui hidden divider'}),
@@ -80,7 +92,7 @@ export default function (parts) {
           className: 'ui positive button',
           disabled: true,
         }, 'Enregistré') : null,
-        editing && save.status() === 'idle' ? el('button', {
+        !opts.autoSave && editing && save.status() === 'idle' ? el('button', {
           // disabled: !editing || save.status() !== 'idle',
           className: 'ui button',
           onClick: () => $patch.clear(),
