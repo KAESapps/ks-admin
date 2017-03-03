@@ -6,6 +6,7 @@ import { map, asReference } from 'mobservable'
 import Command from '../reactiveCollection/Command'
 
 import debounce from 'lodash/debounce'
+import inputValueAdapter from '../utils/inputValueAdapter'
 
 const preventDefault = ev => ev.preventDefault()
 
@@ -13,20 +14,30 @@ export var fieldEditor = function(collections, collectionId, itemId, $patch, opt
   var model = collections[collectionId].model
   var path = options.path
   var type = options.type || 'text'
-  var onChange = newVal => $patch.set(path, newVal)
+
+  const { setValue: onChange, getValue } = inputValueAdapter({
+    setValue: newVal => {
+      if (type === 'number') {
+        newVal = parseFloat(newVal)
+      }
+      $patch.set(path, newVal)
+    },
+    getValue: () => {
+      var itemValue = model.get(itemId).value
+      var partEditing = $patch.has(path)
+      return partEditing ? $patch.get(path) : get(itemValue, path)
+    },
+  })
 
   return observer(function() {
-    var itemValue = model.get(itemId).value
-    var partEditing = $patch.has(path)
-    var value = partEditing ? $patch.get(path) : get(itemValue, path)
+    const value = getValue()
 
     if (typeof type === 'function') return el(type, {value, onChange})
     return el(type === 'textarea' ? 'textarea' : 'input', {
       className: 'ui input',
-      type: type,
-      // bsStyle: partEditing ? "success" : null,
+      type: 'text',
       value: value || "",
-      onChange: ev => onChange(type === 'number' ? ev.target.valueAsNumber : ev.target.value),
+      onChange: ev => onChange(ev.target.value),
     })
   })
 }
