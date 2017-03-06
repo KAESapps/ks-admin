@@ -19,7 +19,7 @@ var fieldView = function (collections, collection, itemId, fieldArg) {
 }
 
 
-export default function ({fields, pageSize, sort, selectable }) {
+export default function ({fields, pageSize, sort, selectable, itemAction }) {
   pageSize = pageSize || 10
   return function (collections, collection, $itemId) {
     if (selectable === undefined) {
@@ -30,6 +30,10 @@ export default function ({fields, pageSize, sort, selectable }) {
     var currentPage = observable(0)
     var previous = () => currentPage(currentPage()-1)
     var next = () => currentPage(currentPage()+1)
+
+    var $itemCheckedId = itemAction ? observable(null) : null
+    var itemActionCmp = itemAction ? el(itemAction({ collections, collection, $itemCheckedId })) : null
+
     return observer(function () {
       var queryParams = {
         $skip: currentPage()*pageSize,
@@ -58,8 +62,15 @@ export default function ({fields, pageSize, sort, selectable }) {
                 style: { cursor: selectable ? 'pointer' : null },
                 className: (selectable && $itemId() === id) ? 'active' : '',
               },
-                selectable && el('td', null,
-                  el(Icon, {className: 'chevron circle right', style: { color: 'gray' } })
+                (selectable || itemAction) && el('td', null,
+                  el(Icon, {
+                    className: itemAction ? 'radio' + ($itemCheckedId() === id ? ' selected' : '') : 'chevron circle right',
+                    style: { color: 'gray' },
+                    onClick: itemAction && ((ev) => {
+                      $itemCheckedId() === id ? $itemCheckedId(null) : $itemCheckedId(id)
+                      ev.stopPropagation()
+                    }),
+                  })
                 ),
                 fields.map((f, key) => {
                   var cmp = fieldView(collections, collection, id, f)
@@ -72,6 +83,7 @@ export default function ({fields, pageSize, sort, selectable }) {
           el('tfoot', { className: 'full-width' },
             el('tr', null,
               el('th', { colSpan: fields.length + 1 },
+                itemActionCmp,
                 el('div', { className: 'ui menu pagination right floated'},
                   el('a', { className: 'item' + (currentPage()+1 <= 1 ? ' disabled' : ''), onClick: previous },
                     el(Icon, { className: 'chevron left' })
