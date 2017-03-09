@@ -7,13 +7,18 @@ import {innerItemViewDefault} from '../collectionsExplorer'
 import Box from '../layout/flex'
 import margin from '../layout/margin'
 
+const tabView = margin(innerItemViewDefault)
+
 // c'est purement un décorateur graphique pour faire un multi-itemView... aucune logique sur les données
-export default function (tabs) {
+export default function (tabsConfig) {
   return function (collections, collectionId, itemId) {
     var $activeTab = observable(0)
+
     return observer(function () {
+      const tabs = tabsConfig.filter(tab => tab.condition ? tab.condition(collections, collectionId, itemId) : true)
       var activeTab = $activeTab()
       var itemViewArg = tabs[activeTab].view
+
       return el(Box, { style: { flexDirection: 'row' } },
         el(Box, { style: { flex: 1 }},
           el('div', { className: 'ui vertical fluid tabular menu red'}, tabs.map((tab, index) =>
@@ -27,7 +32,7 @@ export default function (tabs) {
           ))
         ),
         el(Box, { style: { flex: 3, overflow: 'auto' } },
-          el(margin(innerItemViewDefault)(collections, collectionId, itemId, itemViewArg))
+          el(tabView(collections, collectionId, itemId, itemViewArg))
         )
       )
     })
