@@ -35,7 +35,7 @@ export var fieldEditor = function(collections, collectionId, itemId, $patch, opt
     if (typeof type === 'function') return el(type, {value, onChange})
     return el(type === 'textarea' ? 'textarea' : 'input', {
       className: 'ui input',
-      type: 'text',
+      type: type === 'number' ? 'tel' : type,
       value: value || "",
       onChange: ev => onChange(ev.target.value),
     })
