@@ -5,6 +5,10 @@ export default function eventRegistry() {
       cbs.push({ emitter, event, cb })
       return emitter.on(event, cb)
     },
+    once: function(emitter, event, cb) {
+      cbs.push({ emitter, event, cb })
+      return emitter.once(event, cb)
+    },
     clear: function() {
       cbs.forEach(({ emitter, event, cb }) => {
         // auto-detect listener removing method

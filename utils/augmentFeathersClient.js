@@ -8,6 +8,37 @@ import { observable } from 'mobservable'
  - new events: "authenticated" & "disconnect"
  */
 
+const authenticateWithRetry = function(feathersClient, eventRegistry, credentials) {
+  if (feathersClient.io.connected) {
+    return new Promise(function(resolve, reject) {
+      eventRegistry.once(feathersClient.io, 'disconnect', function() {
+        feathersClient.emit('disconnect')
+        console.log('feathers client disconnected')
+        authenticateWithRetry(feathersClient, eventRegistry, credentials).then(resolve).catch(reject)
+      })
+
+      feathersClient.authenticate(credentials)
+        .then(function() {
+          feathersClient.emit('authenticated')
+          console.log('reauthenticated')
+          resolve()
+        })
+        .catch(err => {
+          feathersClient.emit('notAuthenticated')
+          console.log('not-authenticated', err)
+          reject(err)
+        })
+    })
+  } else {
+    return new Promise(function(resolve, reject) {
+      eventRegistry.once(feathersClient.io, 'connect', function() {
+        console.log('connected')
+        authenticateWithRetry(feathersClient, eventRegistry, credentials).then(resolve).catch(reject)
+      })
+    })
+  }
+}
+
 export default function (feathersClient) {
   const eventRegistry = createEventRegistry()
   const $isAuthenticated = observable(false)
@@ -18,34 +49,15 @@ export default function (feathersClient) {
       if ($isAuthenticated()) {
         throw "authenticate() cannot be called twice unless you logout"
       }
-      return feathersClient.authenticate(credentials)
-        .then(res => {
-          // automatically reauthenticate on disconnect/reconnect
-          eventRegistry.on(feathersClient.io, 'connect', function() {
-            console.log('reconnected')
-            feathersClient.authenticate(credentials).then(function() {
-              feathersClient.emit('authenticated')
-              console.log('reauthenticated')
-            })
-            .catch(err => {
-              feathersClient.emit('notAuthenticated')
-              throw err
-            })
-          })
-
-          eventRegistry.on(feathersClient.io, 'disconnect', function() {
-            console.log('feathers client disconnected')
-            feathersClient.emit('disconnect')
-          })
-
-          console.log('authenticated', res)
-          feathersClient.emit('authenticated')
+      $isAuthenticated('authenticating')
+      return authenticateWithRetry(feathersClient, eventRegistry, credentials)
+        .then(() => {
           $isAuthenticated(true)
         })
-      .catch(err => {
-        feathersClient.emit('notAuthenticated')
-        throw err
-      })
+        .catch(err => {
+          $isAuthenticated(false)
+          throw err
+        })
     },
     logout: function() {
       // clear listeners
