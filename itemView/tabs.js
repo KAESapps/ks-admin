@@ -1,3 +1,4 @@
+import {memoize} from 'lodash'
 import React from 'react'
 const el = React.createElement
 import { observable} from 'mobservable'
@@ -13,26 +14,29 @@ const tabView = margin(innerItemViewDefault)
 export default function (tabsConfig) {
   return function (collections, collectionId, itemId) {
     var $activeTab = observable(0)
-
+    // memoize la création des vues pour ne pas les recréer quand la valeur de l'item change (ce qui peut arriver à cause de l'évaluation des 'conditions')
+    const createTabView = memoize(activeTab => {
+      var itemViewArg = tabsConfig[activeTab].view
+      return tabView(collections, collectionId, itemId, itemViewArg)
+    })
     return observer(function () {
-      const tabs = tabsConfig.filter(tab => tab.condition ? tab.condition(collections, collectionId, itemId) : true)
       var activeTab = $activeTab()
-      var itemViewArg = tabs[activeTab].view
 
       return el(Box, { style: { flexDirection: 'row' } },
         el(Box, { style: { flex: 1 }},
-          el('div', { className: 'ui vertical fluid tabular menu red'}, tabs.map((tab, index) =>
-            el('a', {
+          el('div', { className: 'ui vertical fluid tabular menu red'}, tabsConfig.map((tab, index) => {
+            if (tab.condition && !tab.condition(collections, collectionId, itemId)) return null
+            return el('a', {
                 key: index,
                 className: 'item ' + (activeTab === index ? 'active' : ''),
                 onClick: $activeTab.bind(null, index),
               },
               (typeof tab.label === 'function') ? el(tab.label(collections, collectionId, itemId)) : tab.label
             )
-          ))
+          }))
         ),
         el(Box, { style: { flex: 3, overflow: 'auto' } },
-          el(tabView(collections, collectionId, itemId, itemViewArg))
+          el(createTabView(activeTab))
         )
       )
     })

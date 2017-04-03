@@ -6,7 +6,15 @@ import { observer } from 'mobservable-react'
 import { Box } from './layout/flex'
 
 import Command from './reactiveCollection/Command'
-
+var memoizeOne = fn => {
+  var memoizedArg, memoizedRes
+  return arg => {
+    if (arg === memoizedArg) return memoizedRes
+    memoizedArg = arg
+    memoizedRes = fn(arg)
+    return memoizedRes
+  }
+}
 function normalizeEvent (ev, type) {
   if (type === 'number') return ev.target.valueAsNumber
   return ev.target.value
@@ -127,9 +135,9 @@ export const itemViewWithDefaults = function(arg = {}) {
       model.remove(itemId).then(back)
     }
 
-    return observer(function () {
-      if (itemId === null) return null
+    if (itemId === null) return () => null
 
+    return observer(function () {
       var item = model.get(itemId)
       var itemLabel = itemId
       if (item.loaded && itemViewArg.label) itemLabel = (typeof itemViewArg.label === 'function') ? itemViewArg.label(item.value) : get(item.value, itemViewArg.label)
@@ -305,20 +313,23 @@ export const configureCollectionEditor = function(arg) {
     var listCmp = (typeof listViewArg === 'function' ? listViewArg : listViewDefault)(collections, collectionId, selected)
     var itemViewArg = arg.item
     var itemView = (typeof itemViewArg === 'function') ? itemViewArg : itemViewDefault
-    return observer(function () {
+    // pour compenser les cas où l'itemView est recréée même quand l'itemId ne change pas, on la réutilise // TODO: comprendre pourquoi ça arrive
+    var createItemView = memoizeOne(itemId => itemId ? el(itemView(collections, collectionId, itemId, back), {key: 'item'}) : null)
+    var cmp = observer(function () {
       var itemId = selected()
       return el(Box, {}, [
         el(Box, {key: 'list', style: {display: itemId ? 'none' : undefined}},
         // on garde la liste montée pour ne pas relacher le cache de données
-          el(listCmp)
+          itemId ? null : el(listCmp)
         ),
         // on crée un nouveau composant (une nouvelle classe) quand itemId change (et pas une classe qui change d'itemId)
         // cela permet d'avoir un état frais lorsque l'on change d'item
         // par exemple, s'il y a des onglets dans l'itemView, on n'affiche pas l'onglet précédent quand on change d'item mais on affiche bien celui par défaut
         // si ce n'est pas le comportement souhaité, il faut changer de collectionEditorView
-        itemId ? el(itemView(collections, collectionId, itemId, back), {key: 'item'}) : null,
+        createItemView(itemId),
       ])
     })
+    return cmp
   }
 }
 
