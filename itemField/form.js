@@ -2,32 +2,48 @@ import get from 'lodash/get'
 import React from 'react'
 const el = React.createElement
 import { observer } from 'mobservable-react'
-import { map, asReference } from 'mobservable'
+import { map, asReference, observable } from 'mobservable'
 import Command from '../reactiveCollection/Command'
 
 import debounce from 'lodash/debounce'
-import inputValueAdapter from '../utils/inputValueAdapter'
 
 const preventDefault = ev => ev.preventDefault()
+
+const numberEditor = ({model, path, itemId, $patch}) => {
+  const numberValueAsText = observable(null)
+  return {
+    setValue: newVal => {
+      numberValueAsText(newVal)
+      newVal = parseFloat(newVal)
+      $patch.set(path, isNaN(newVal) ? null : newVal)
+    },
+    getValue: observable(() => {
+      var itemValue = model.get(itemId).value
+      var partEditing = $patch.has(path)
+      var numberValueOrNull = partEditing ? $patch.get(path) : get(itemValue, path)
+      if (isNaN(numberValueOrNull) || numberValueOrNull == null) return ''
+      return parseFloat(numberValueAsText()) === numberValueOrNull ? numberValueAsText() : numberValueOrNull+''
+    }),
+  }
+}
+
+const textEditor = ({model, path, itemId, $patch}) => ({
+  setValue: newVal => {
+    $patch.set(path, newVal)
+  },
+  getValue: observable(() => {
+    var itemValue = model.get(itemId).value
+    var partEditing = $patch.has(path)
+    return partEditing ? $patch.get(path) : get(itemValue, path)
+  }),
+})
 
 export var fieldEditor = function(collections, collectionId, itemId, $patch, options) {
   var model = collections[collectionId].model
   var path = options.path
   var type = options.type || 'text'
 
-  const { setValue: onChange, getValue } = inputValueAdapter({
-    setValue: newVal => {
-      if (type === 'number') {
-        newVal = parseFloat(newVal)
-      }
-      $patch.set(path, newVal)
-    },
-    getValue: () => {
-      var itemValue = model.get(itemId).value
-      var partEditing = $patch.has(path)
-      return partEditing ? $patch.get(path) : get(itemValue, path)
-    },
-  })
+  const { setValue: onChange, getValue } = (type === 'number' ? numberEditor : textEditor)({model, path, itemId, $patch})
 
   return observer(function() {
     const value = getValue()
