@@ -118,10 +118,10 @@ export var innerItemViewDefault = function (collections, collectionId, itemId, a
   }
 }
 
-export const itemViewWithDefaults = function(arg = {}) {
+export const itemViewWithDefaults = function(arg) {
   return function (collections, collectionId, itemId, back) {
     var model = collections[collectionId].model
-    var itemViewArg = arg.view || collections[collectionId].views.item // ici, ça ne peut pas être une fonction, c'est forcément une config
+    var itemViewArg = arg || collections[collectionId].views.item // ici, ça ne peut pas être une fonction, c'est forcément une config
     // si c'est un string, ou un array, c'est en fait directements les fields
     // TODO: pas très clair, à remanier
     if (typeof itemViewArg === 'string') itemViewArg = [itemViewArg] // un seul champ
@@ -312,7 +312,7 @@ export const configureCollectionEditor = function(arg) {
     var listViewArg = arg.list
     var listCmp = (typeof listViewArg === 'function' ? listViewArg : listViewDefault)(collections, collectionId, selected)
     var itemViewArg = arg.item
-    var itemView = (typeof itemViewArg === 'function') ? itemViewArg : itemViewDefault
+    var itemView = (typeof itemViewArg === 'function') ? itemViewArg : itemViewWithDefaults(itemViewArg)
     // pour compenser les cas où l'itemView est recréée même quand l'itemId ne change pas, on la réutilise // TODO: comprendre pourquoi ça arrive
     var createItemView = memoizeOne(itemId => itemId ? el(itemView(collections, collectionId, itemId, back), {key: 'item'}) : null)
     var cmp = observer(function () {
