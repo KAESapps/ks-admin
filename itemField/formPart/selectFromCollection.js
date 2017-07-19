@@ -3,6 +3,9 @@ import React from 'react'
 const el = React.createElement
 import { observable } from 'mobservable'
 import { observer } from 'mobservable-react'
+import escapeStringRegexp from 'escape-string-regexp'
+
+const autoFocusRef = node => node && node.focus()
 
 const itemPicker = function({collection, labelPath, onChange}){
   var $srch = observable('')
@@ -11,7 +14,7 @@ const itemPicker = function({collection, labelPath, onChange}){
   var nxt = () => $skip($skip()+10)
 
   return observer(function({value}){
-    var results = collection.query({$sort: {[labelPath]: 1}, $limit: 10, $skip: $skip()})
+    var results = collection.query({$sort: {[labelPath]: 1}, $limit: 10, $skip: $skip(), [labelPath]: { regex: { template: `.*${escapeStringRegexp($srch())}.*`, options: 'i' } } })
 
     return el('div', {
         className: 'ui vertical menu',
@@ -22,7 +25,13 @@ const itemPicker = function({collection, labelPath, onChange}){
         },
       },
       results.loading ? el('span', { className: 'item' }, 'searching...') : null,
-      //el('input', {className: 'item', value: $srch(), onChange: ev => $srch(ev.target.value)}),
+      el('input', {
+        className: 'item',
+        placeholder: "Rechercher",
+        value: $srch(),
+        onChange: ev => $srch(ev.target.value),
+        ref: autoFocusRef,
+      }),
       results.value.map(optionId => {
         var optionLabel = collection.get(optionId).loaded ? get(collection.get(optionId).value, labelPath) : '...'
         return el('a', { key: optionId, className: 'item', onClick: () => onChange(optionId) }, optionLabel)
