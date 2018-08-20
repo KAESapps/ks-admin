@@ -142,7 +142,7 @@ export const itemViewWithDefaults = function(arg) {
       var itemLabel = itemId
       if (item.loaded && itemViewArg.label) itemLabel = (typeof itemViewArg.label === 'function') ? itemViewArg.label(item.value) : get(item.value, itemViewArg.label)
       return el(Box, {},
-        el('div', { className: 'ui inverted menu' },
+        el('div', { className: 'ui inverted menu', style: { flexShrink: 0 } },
           el('a', { className: 'item', onClick: back },
             el('i', { className: 'angle left icon' }),
             'retour'
@@ -287,7 +287,7 @@ export const listViewWithDefaults = function(arg) {
 
     return observer(function () {
       return el(Box, {},
-        !preventAdd && el('div', { className: 'ui inverted menu' },
+        !preventAdd && el('div', { className: 'ui inverted menu', style: { flexShrink: 0 } },
           el('div', { className: 'item' },
               el('div', { className: 'ui primary button', onClick: add },
                 el('i', { className: 'plus icon' }),
@@ -375,3 +375,4 @@ export default function (collections) {
     )
   }
 }
+
