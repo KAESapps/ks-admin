@@ -32,7 +32,7 @@ export default function ({fields, pageSize, sort, selectable, itemAction }) {
     var next = () => currentPage(currentPage()+1)
 
     var $itemCheckedId = itemAction ? observable(null) : null
-    var itemActionCmp = itemAction ? el(itemAction({ collections, collection, $itemCheckedId })) : null
+    var itemActionCmp = itemAction ? el(itemAction({ collections, collection, $itemCheckedId, $itemId })) : null
 
     return observer(function () {
       var queryParams = {
