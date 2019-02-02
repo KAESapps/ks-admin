@@ -7,6 +7,7 @@ export const Box = (props) => {
       display: 'flex',
       flexDirection: 'column',
       flex: 1,
+      overflow: 'hidden'
     }, props.style),
   }))
 }
