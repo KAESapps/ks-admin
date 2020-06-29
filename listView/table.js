@@ -44,10 +44,10 @@ export default function ({fields, pageSize, sort, selectable, itemAction }) {
       if (!itemIds.loaded) return el('div', null, 'chargement...')
 
       return el('div', null,
-        el(Table, { className: (selectable ? 'definition selectable' : '') },
+        el(Table, { className: 'fixed single line' + ((selectable ? ' definition selectable' : '')) },
           el('thead', null,
             el('tr', null,
-              selectable && el('th'),
+              selectable && el('th', {className: "one wide"}),
               fields.map((f, key) => {
                 var fieldArg = convertFieldArg(f)
                 return el('th', {key}, fieldArg.label)
