@@ -47,6 +47,6 @@
     ]
   },
   "devDependencies": {
-    "eslint": "3.8.1"
+    "eslint": "7.3.1"
   }
 }
