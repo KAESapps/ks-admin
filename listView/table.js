@@ -63,10 +63,10 @@ export default function ({fields, pageSize, sort, selectable, itemAction }) {
                 className: (selectable && $itemId() === id) ? 'active' : '',
               },
                 (selectable || itemAction) && el('td', null,
-                  el(Icon, {
-                    className: itemAction ? 'radio' + ($itemCheckedId() === id ? ' selected' : '') : 'chevron circle right',
+                  itemAction && el(Icon, {
+                    className: 'radio' + ($itemCheckedId() === id ? ' selected' : ''),
                     style: { color: 'gray' },
-                    onClick: itemAction && ((ev) => {
+                    onClick: ((ev) => {
                       $itemCheckedId() === id ? $itemCheckedId(null) : $itemCheckedId(id)
                       ev.stopPropagation()
                     }),
