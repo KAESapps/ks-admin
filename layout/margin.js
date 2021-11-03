@@ -19,6 +19,7 @@ export default function () {
         paddingRight: margins.r,
         paddingTop: margins.t,
         paddingBottom: margins.b,
+        overflow: null,
       } }, el(reactCmp))
     }
   }
