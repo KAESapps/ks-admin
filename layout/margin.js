@@ -1,6 +1,7 @@
 import { createElement as el } from 'react'
 import assertArgs from 'assert-args'
 import defaults from 'lodash/defaults'
+import Box from '../layout/flex'
 
 export default function () {
   const { opts, view } = assertArgs(arguments, {
@@ -13,7 +14,7 @@ export default function () {
   return function() {
     const reactCmp = view.apply(view, arguments)
     return function() {
-      return el('div', { style: {
+      return el(Box, { style: {
         paddingLeft: margins.l,
         paddingRight: margins.r,
         paddingTop: margins.t,

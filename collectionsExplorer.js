@@ -91,10 +91,10 @@ export var fieldViewDefault = function (fieldArg) {
     const labelView = (typeof fieldArg.label === 'function' ? fieldArg.label(collections, collectionId, itemId, fieldArg) : () => el('label', {}, fieldArg.label))
 
     return function () {
-      return el('div', {
+      return el(Box, {
         className: 'ui form',
       },
-        el ('div', { className: 'field'},
+        el (Box, { className: 'field'},
           el(labelView),
           el(fieldValueView),
           el('div', { className: 'help' }, fieldArg.tip)
@@ -112,7 +112,7 @@ export var innerItemViewDefault = function (collections, collectionId, itemId, a
     )(collections, collectionId, itemId)
   )
   return function () {
-    return el('div', {}, fields.map((field, index) =>
+    return el(Box, {flex:1}, fields.map((field, index) =>
       el(field, {key: index})
     ))
   }
@@ -318,7 +318,7 @@ export const configureCollectionEditor = function(arg) {
     var cmp = observer(function () {
       var itemId = selected()
       return el(Box, {}, [
-        el(Box, {key: 'list', style: {display: itemId ? 'none' : undefined}},
+        el(Box, {key: 'list', style: {display: itemId ? 'none' : 'flex'}},
         // on garde la liste montée pour ne pas relacher le cache de données
           itemId ? null : el(listCmp)
         ),
@@ -369,7 +369,7 @@ var collectionsSwitcher = function (collections, selected) {
 export default function (collections) {
   var selected = observable(collections.defaultCollection)
   return function () {
-    return el('div', {},
+    return el(Box, {},
       el(collectionsList(collections, selected)),
       el(collectionsSwitcher(collections, selected))
     )

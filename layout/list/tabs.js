@@ -1,6 +1,7 @@
 import { createElement as el } from 'react'
 import { observable } from 'mobservable'
 import { observer } from 'mobservable-react'
+import Box from "ks-admin/layout/flex"
 
 export default function({
   tabs, // object of tab configs by key: { label, view }
@@ -22,7 +23,7 @@ export default function({
     return observer(function () {
       var selected = getSelected()
       const view = tabs[selected].view
-      return el('div', {},
+      return el(Box, {},
         el('div', {
           className: 'ui horizontal fluid tabular menu red',
         }, tabOrder.map(id => {

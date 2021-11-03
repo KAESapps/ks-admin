@@ -4,7 +4,7 @@ const el = React.createElement
 import { observer } from 'mobservable-react'
 import { map, asReference, observable } from 'mobservable'
 import Command from '../reactiveCollection/Command'
-
+import Box from '../layout/flex'
 import debounce from 'lodash/debounce'
 
 const preventDefault = ev => ev.preventDefault()
@@ -104,7 +104,7 @@ export default function (opts, parts) {
     return observer(function () {
       var editing = $patch.keys().length > 0
 
-      return el('div', { className: 'ui form'},
+      return el(Box, { className: 'ui form'},
         el('form', {onSubmit: preventDefault}, cmps.map((cmp, i) => el(cmp, {key: i}))),
         el('div', { className: 'ui hidden divider'}),
         editing && save.status() === 'idle' ? el('button', {
